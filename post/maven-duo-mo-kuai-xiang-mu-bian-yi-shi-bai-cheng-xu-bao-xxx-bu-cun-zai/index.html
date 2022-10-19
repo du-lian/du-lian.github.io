@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Maven多模块项目编译失败：程序包xxx不存在 | dulian</title>
+<meta name="description" content="dulian 的个人博客，写一点自己喜欢的东西。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="http://dulian.top/favicon.ico?v=1666140165942">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/papercss@1.6.1/dist/paper.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="http://dulian.top/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+  </head>
+  <body>
+  
+    <nav class="navbar border fixed split-nav">
+  <div class="nav-brand">
+    <h3><a href="http://dulian.top">dulian</a></h3>
+  </div>
+  <div class="collapsible">
+    <input id="collapsible1" type="checkbox" name="collapsible1">
+    <button>
+      <label for="collapsible1">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </label>
+    </button>
+    <div class="collapsible-body">
+      <ul class="inline">
+        
+          <li>
+            
+              <a href="/" class="menu">
+                首页
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/archives" class="menu">
+                归档
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/tags" class="menu">
+                标签
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/post/about" class="menu">
+                关于
+              </a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div id="top" class="row site">
+      <div class="sm-12 md-8 col">
+        <div class="paper">
+          <article class="article">
+            <h1>Maven多模块项目编译失败：程序包xxx不存在</h1>
+            <p class="article-meta">
+              2022-09-11
+              
+                <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge ">
+                  自己遇到的错误，解决办法
+                </a>
+              
+            </p>
+            
+            <div class="post-content" v-pre>
+              <p><strong>java: 程序包com.heima.utils.common不存在</strong></p>
+<p>将xxx.iml 文件删除，然后maven clean，我在terminal哪里mvn clean 一下，  发现了下面的错误</p>
+<figure data-type="image" tabindex="1"><img src="C:%5CUsers%5C%E9%83%BD%E6%81%8B%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20220909144947621.png" alt="image-20220909144947621" loading="lazy"></figure>
+<p>遇到了没又发现这个application运行， 我就试了一下网上说的 使用clean文件，发现就找到这个问题。</p>
+<p>大概意思就是说我的子类找不到父类，或者少了pom 打包方式</p>
+<p>后面去找xml文件， 发现我的parent哪里写错了。改了回来，再继续试一下。</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220909145344146.png" alt="image-20220909145344146" loading="lazy"></figure>
+<p>我就纳闷了，我自己早早就把这个maven3.6.3删了，安装了3.6.1。我后面就去找了config的setting.xml文件，发现自己的localRepository写错了，我就这个改了。</p>
+<p>后面就出现了</p>
+<pre><code class="language-shell">Could not find goal '' in plugin org.apache.maven.plugins:maven-idea-plugin:2.2.1 among availab
+</code></pre>
+<p>发现是我在terminal哪里 输入 写错了。 下面是正确版本</p>
+<pre><code class="language-shell">mvn idea:idea install
+</code></pre>
+<p>如果出现了build的失败的。就把maven源改成了阿里云的源。在config/setting.xml</p>
+<pre><code class="language-xml">&lt;mirror&gt;  
+     &lt;id&gt;alimaven&lt;/id&gt;  
+     &lt;name&gt;aliyun maven&lt;/name&gt;  
+     &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;  
+     &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;          
+&lt;/mirror&gt;
+</code></pre>
+<p>这样就创建成功了。</p>
+<p>可以参考链接：<a href="https://blog.csdn.net/qq_36525906/article/details/122468216?spm=1001.2101.3001.6650.8&amp;utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-8-122468216-blog-125944077.pc_relevant_multi_platform_whitelistv3&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-8-122468216-blog-125944077.pc_relevant_multi_platform_whitelistv3">(2条消息) IDEA 找不到或无法加载主类_BackToMeNow的博客-CSDN博客_idea 找不到或无法加载主类</a></p>
+<p>现在我的类找到了，maven仓库也找到了。 但是又开始报其他问题的错误了。</p>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911192634438.png" alt="image-20220911192634438" loading="lazy"></figure>
+<p>找啊找！ 查了资料，说清楚一下缓存</p>
+<p>如果你的代码里没有报错，明明是存在的。但是java报错找不到符号。像下面这样子。</p>
+<p>参考链接：<a href="https://blog.csdn.net/qq_44285562/article/details/115905578">(2条消息) java找不到符号解决办法_Sun晓~的博客-CSDN博客_找不到符号怎么解决</a></p>
+<p>尝试一下先：</p>
+<p>idea清楚缓存</p>
+<p>![image-20220911192912449](http://dulianblog.oss-cn-guangzhou.aliyuncs.com/<strong>java: 程序包com.heima.utils.common不存在</strong></p>
+<p>我在terminal哪里mvn clean 一下，  发现了下面的错误</p>
+<figure data-type="image" tabindex="4"><img src="C:%5CUsers%5C%E9%83%BD%E6%81%8B%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20220909144947621.png" alt="image-20220909144947621" loading="lazy"></figure>
+<p>遇到了没又发现这个application运行， 我就试了一下网上说的 使用clean文件，发现就找到这个问题。</p>
+<p>大概意思就是说我的子类找不到父类，或者少了pom 打包方式</p>
+<p>后面去找xml文件， 发现我的parent哪里写错了。改了回来，再继续试一下。</p>
+<figure data-type="image" tabindex="5"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220909145344146.png" alt="image-20220909145344146" loading="lazy"></figure>
+<p>我就纳闷了，我自己早早就把这个maven3.6.3删了，安装了3.6.1。我后面就去找了config的setting.xml文件，发现自己的localRepository写错了，我就这个改了。</p>
+<p>后面就出现了</p>
+<pre><code class="language-shell">Could not find goal '' in plugin org.apache.maven.plugins:maven-idea-plugin:2.2.1 among availab
+</code></pre>
+<p>发现是我在terminal哪里 输入 写错了。 下面是正确版本</p>
+<pre><code class="language-shell">mvn idea:idea install
+</code></pre>
+<p>如果出现了build的失败的。就把maven源改成了阿里云的源。在config/setting.xml</p>
+<pre><code class="language-xml">&lt;mirror&gt;  
+     &lt;id&gt;alimaven&lt;/id&gt;  
+     &lt;name&gt;aliyun maven&lt;/name&gt;  
+     &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;  
+     &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;          
+&lt;/mirror&gt;
+</code></pre>
+<p>这样就创建成功了。</p>
+<p>可以参考链接：<a href="https://blog.csdn.net/qq_36525906/article/details/122468216?spm=1001.2101.3001.6650.8&amp;utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-8-122468216-blog-125944077.pc_relevant_multi_platform_whitelistv3&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~Rate-8-122468216-blog-125944077.pc_relevant_multi_platform_whitelistv3">(2条消息) IDEA 找不到或无法加载主类_BackToMeNow的博客-CSDN博客_idea 找不到或无法加载主类</a></p>
+<p>现在我的类找到了，maven仓库也找到了。 但是又开始报其他问题的错误了。</p>
+<figure data-type="image" tabindex="6"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911192634438.png" alt="image-20220911192634438" loading="lazy"></figure>
+<p>找啊找！ 查了资料，说清楚一下缓存</p>
+<p>如果你的代码里没有报错，明明是存在的。但是java报错找不到符号。像下面这样子。</p>
+<p>参考链接：<a href="https://blog.csdn.net/qq_44285562/article/details/115905578">(2条消息) java找不到符号解决办法_Sun晓~的博客-CSDN博客_找不到符号怎么解决</a></p>
+<p>尝试一下先：</p>
+<p>idea清楚缓存</p>
+<figure data-type="image" tabindex="7"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911192912449.png" alt="image-20220911192912449" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911192931728.png" alt="image-20220911192931728" loading="lazy"></figure>
+<p>看看这招行不行。不行，还是报错</p>
+<figure data-type="image" tabindex="9"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911192634438.png" alt="image-20220911192634438" loading="lazy"></figure>
+<p>就试一下maven的 clean  和  packing</p>
+<figure data-type="image" tabindex="10"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911193221110.png" alt="image-20220911193221110" loading="lazy"></figure>
+<p>这个可行。 终于可以启动springboot项目了。</p>
+<figure data-type="image" tabindex="11"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220911193359246.png" alt="image-20220911193359246" loading="lazy"></figure>
+<p>能启动，能显示，就成功一大半了哈哈。</p>
+
+            </div>
+          </article>
+        </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="http://dulian.top/post/guan-yu-cong-shu-ju-ku-zhong-cha-xun-shi-jian-ge-shi-shu-ju-dao-hou-tai-bian-wei-shi-jian-chuo-wen-ti/">
+                <h3 class="post-title">
+                  关于从数据库中查询时间格式数据到后台变为时间戳问题
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
+      </div>
+
+      <div class="sm-12 md-4 col sidebar">
+  <div class="paper info-container">
+    <img src="http://dulian.top/images/avatar.png?v=1666140165942" class="no-responsive avatar">
+    <div class="text-muted">dulian 的个人博客，写一点自己喜欢的东西。</div>
+    <div class="social-container">
+      
+        
+          <a href="https://github.com/du-lian" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      最新文章
+    </div>
+    <div class="row">
+      <ul>
+        
+          
+            <li>
+              <a href="http://dulian.top/post/zeng-qiang-for/">增强for（原来地址是一样的）</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">对于微服务的理解</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">sql server 分页处理</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">拉项目idea注解爆红解决方法</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">Error running &#39;UserApplication&#39;: Command line is too long. </a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">树表结构优化</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</a>
+            </li>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      标签列表
+    </div>
+    <div class="row">
+      
+        <a href="http://dulian.top/tag/sS25MVOkt/" class="badge ">
+          工作遇到的难点
+        </a>
+      
+        <a href="http://dulian.top/tag/So9sGtscD/" class="badge secondary">
+          学习
+        </a>
+      
+        <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge success">
+          自己遇到的错误，解决办法
+        </a>
+      
+        <a href="http://dulian.top/tag/DZosi5lj5/" class="badge secondary">
+          无聊自己写写觉得对自己有用的东西
+        </a>
+      
+    </div>
+  </div>
+  <div class="paper">
+    Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://dulian.top/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+
+  </body>
+</html>

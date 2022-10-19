@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>sql server 分页处理 | dulian</title>
+<meta name="description" content="dulian 的个人博客，写一点自己喜欢的东西。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="http://dulian.top/favicon.ico?v=1666140165942">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/papercss@1.6.1/dist/paper.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="http://dulian.top/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+  </head>
+  <body>
+  
+    <nav class="navbar border fixed split-nav">
+  <div class="nav-brand">
+    <h3><a href="http://dulian.top">dulian</a></h3>
+  </div>
+  <div class="collapsible">
+    <input id="collapsible1" type="checkbox" name="collapsible1">
+    <button>
+      <label for="collapsible1">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </label>
+    </button>
+    <div class="collapsible-body">
+      <ul class="inline">
+        
+          <li>
+            
+              <a href="/" class="menu">
+                首页
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/archives" class="menu">
+                归档
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/tags" class="menu">
+                标签
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/post/about" class="menu">
+                关于
+              </a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div id="top" class="row site">
+      <div class="sm-12 md-8 col">
+        <div class="paper">
+          <article class="article">
+            <h1>sql server 分页处理</h1>
+            <p class="article-meta">
+              2022-09-25
+              
+                <a href="http://dulian.top/tag/sS25MVOkt/" class="badge secondary">
+                  工作遇到的难点
+                </a>
+              
+            </p>
+            
+            <div class="post-content" v-pre>
+              <p>项目的需求是想要返回的数据要分页处理，我一开始使用page，但不行，我就使用了row_number()</p>
+<p>一用一个爽</p>
+<p>较通用,</p>
+<pre><code class="language-java">	create procedure p_News
+	@pageSize int,@pageIndex int 
+	as
+	begin
+	select * from(
+	select *,Row_Number() over(order by Id) as [$Row_Num] from News 
+	--where [$Row_Num]&lt;=3 这个时候行号不能用,必须全部执行完毕以后才会产生
+	)as _temp where [$Row_Num] between (@pageIndex*pageSize+1) and (@pageIndex+1)*@pageSize;
+
+	end
+	--注意参数的设置,java调用时 String sql=&quot;{call p_News(?,?)}&quot;
+	--select Row_Number() over(order by id) RN,* from News where id ID&gt;3 给最终的结果编一个号,一个连续的号
+	--order by必须写在括号里面,因为写在from News 后面会报 sql的错误:除非另外还指定了 TOP 或 FOR XML，否则，ORDER BY 子句在视图、内联函数、派生表、子查询和公用表表达式中无效。
+</code></pre>
+<p>我基于自己的需求，在mapper那里面修改了</p>
+<pre><code class="language-java">select top ${page.pageSize} *
+		from (select row_number()
+						 over(order by id asc) as rownumber,*
+			  from test
+			  where muid in
+					(select id
+					 from student
+					 where projectId = #{xxx.projectid}
+					 and parentIDs like '%' + #{xxx.muid} + '%'
+					)
+		    ) temp_row
+		where rownumber &gt; ((${page.pageNo} - 1) * ${page.pageSize})
+</code></pre>
+<p>这里还遇到了一个小问题，</p>
+<p>mybatis运行mssql语句的时候，<strong>报这个错mssql报错： java.sql.SQLException: '@P0' 附近有语法错误</strong></p>
+<p>原因：</p>
+<p>Top后面是不允许使用？占位符，‘@P0’附近有语法错误就是由此引起的。需使用拼接sql语句的方法。</p>
+<p>@P0指的是第一个参数附近有错误，要是在第二个参数(?)附近，则错误为'@P1' 附近有语法错误。</p>
+<p>解决：</p>
+<p>所以在mybatis中，传参的写法应该是： <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi>X</mi><mi>X</mi><mi>X</mi></mrow><mi mathvariant="normal">这</mi><mi mathvariant="normal">样</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">动</mi><mi mathvariant="normal">态</mi><mi mathvariant="normal">拼</mi><mi mathvariant="normal">接</mi><mi mathvariant="normal">所</mi><mi mathvariant="normal">以</mi><mi mathvariant="normal">要</mi><mi mathvariant="normal">清</mi><mi mathvariant="normal">楚</mi><mi mathvariant="normal">自</mi><mi mathvariant="normal">己</mi><mi mathvariant="normal">的</mi></mrow><annotation encoding="application/x-tex">{XXX}   这样是动态拼接
+所以要清楚自己的</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="mord mathdefault" style="margin-right:0.07847em;">X</span></span><span class="mord cjk_fallback">这</span><span class="mord cjk_fallback">样</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">动</span><span class="mord cjk_fallback">态</span><span class="mord cjk_fallback">拼</span><span class="mord cjk_fallback">接</span><span class="mord cjk_fallback">所</span><span class="mord cjk_fallback">以</span><span class="mord cjk_fallback">要</span><span class="mord cjk_fallback">清</span><span class="mord cjk_fallback">楚</span><span class="mord cjk_fallback">自</span><span class="mord cjk_fallback">己</span><span class="mord cjk_fallback">的</span></span></span></span> 和 #符号</p>
+<p>使用$的时候</p>
+<p>值是直接进去的，比较适用于数值类型</p>
+<p>#就是比较适用字符串，会自带''这两个点，不会报错</p>
+
+            </div>
+          </article>
+        </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">
+                <h3 class="post-title">
+                  数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
+      </div>
+
+      <div class="sm-12 md-4 col sidebar">
+  <div class="paper info-container">
+    <img src="http://dulian.top/images/avatar.png?v=1666140165942" class="no-responsive avatar">
+    <div class="text-muted">dulian 的个人博客，写一点自己喜欢的东西。</div>
+    <div class="social-container">
+      
+        
+          <a href="https://github.com/du-lian" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      最新文章
+    </div>
+    <div class="row">
+      <ul>
+        
+          
+            <li>
+              <a href="http://dulian.top/post/zeng-qiang-for/">增强for（原来地址是一样的）</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">对于微服务的理解</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">sql server 分页处理</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">拉项目idea注解爆红解决方法</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">Error running &#39;UserApplication&#39;: Command line is too long. </a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">树表结构优化</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</a>
+            </li>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      标签列表
+    </div>
+    <div class="row">
+      
+        <a href="http://dulian.top/tag/sS25MVOkt/" class="badge secondary">
+          工作遇到的难点
+        </a>
+      
+        <a href="http://dulian.top/tag/So9sGtscD/" class="badge success">
+          学习
+        </a>
+      
+        <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge ">
+          自己遇到的错误，解决办法
+        </a>
+      
+        <a href="http://dulian.top/tag/DZosi5lj5/" class="badge warning">
+          无聊自己写写觉得对自己有用的东西
+        </a>
+      
+    </div>
+  </div>
+  <div class="paper">
+    Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://dulian.top/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+
+  </body>
+</html>

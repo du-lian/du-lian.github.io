@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter | dulian</title>
+<meta name="description" content="dulian 的个人博客，写一点自己喜欢的东西。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="http://dulian.top/favicon.ico?v=1666140165942">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/papercss@1.6.1/dist/paper.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="http://dulian.top/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+  </head>
+  <body>
+  
+    <nav class="navbar border fixed split-nav">
+  <div class="nav-brand">
+    <h3><a href="http://dulian.top">dulian</a></h3>
+  </div>
+  <div class="collapsible">
+    <input id="collapsible1" type="checkbox" name="collapsible1">
+    <button>
+      <label for="collapsible1">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </label>
+    </button>
+    <div class="collapsible-body">
+      <ul class="inline">
+        
+          <li>
+            
+              <a href="/" class="menu">
+                首页
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/archives" class="menu">
+                归档
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/tags" class="menu">
+                标签
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/post/about" class="menu">
+                关于
+              </a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div id="top" class="row site">
+      <div class="sm-12 md-8 col">
+        <div class="paper">
+          <article class="article">
+            <h1>后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</h1>
+            <p class="article-meta">
+              2022-09-27
+              
+                <a href="http://dulian.top/tag/sS25MVOkt/" class="badge secondary">
+                  工作遇到的难点
+                </a>
+              
+            </p>
+            
+              <img src="https://static.dingtalk.com/media/lQLPJxa5XJl8G8DNAhDNBIWwf0YWRexFCEEDMMNQhABLAA_1157_528.png?auth_bizType=&#39;IM&#39;" alt="后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter">
+            
+            <div class="post-content" v-pre>
+              <h3 id="lombok的data注解踩坑setter的大小写问题">Lombok的@Data注解踩坑，@Setter的大小写问题</h3>
+<p>以前在处理前端请求的实体类的时候，都是用Lombok的@Data注解对实体类进行getter、setter以及toString的声名，今天处理实体类的时候，发现生成的setter方法和Java Bean的命名规则不一致。（@Data的作用是为我们定义的字段添加Lombok的@ToString、@EqualsAndHashCode、 @Getter方法、@RequiredArgsConstructor 和 为非final字段添加@Setter）</p>
+<p>我要生成getter、setter的字段是：</p>
+<pre><code class="language-java">private List&lt;Map&lt;String,String&gt;&gt; yAxis;
+private List&lt;XAxis&gt; xAxis;
+</code></pre>
+<p>在我使用@Data时生成的代码和实际要生成的代码比较如下：</p>
+<pre><code class="language-java">//@Data生成的setter方法
+setYAxis()  setXAxis()
+//实际需要的setter方法
+setyAxis()  setxAxis()
+</code></pre>
+<p>Java Bean的4种命名特殊规范中有一种情况：<strong>如果属性名的第二个字母大写，那么该属性名直接用作 getter/setter 方法中 get/set 的后部分</strong>，就是说大小写不变。例如属性名为uName，方法是getuName/setuName。</p>
+<p>字段的<strong>首字母大小写</strong>发生了变化。这个变化意味着，我在使用@Data注解生成的getter方法得到的属性值是&quot;<strong>yaxis</strong>&quot;和&quot;<strong>xaxis</strong>&quot;，而实际上我需要的属性值为&quot;<strong>yAxis</strong>&quot;和&quot;<strong>xAxis</strong>&quot;，这也就导致了我返回给前端的数据，前端无法识别，从而出错。</p>
+<h3 id="javabean-gettersetter命名规范特例">JavaBean getter/setter命名规范[特例]</h3>
+<p>一般JavaBean属性以小写字母开头，驼峰命名格式，相应的 getter/setter 方法是 get/set 接上首字母大写的属性名。例如：属性名为userName，其对应的getter/setter 方法是 getUserName/setUserName。</p>
+<p>但是，还有一些特殊情况：</p>
+<p>如果属性名的第二个字母大写，那么该属性名直接用作 getter/setter 方法中 get/set 的后部分，就是说大小写不变。例如属性名为uName，方法是getuName/setuName。</p>
+<p>如果属性名的前两个字母是大写（一般的专有名词和缩略词都会大写），也是属性名直接用作 getter/setter 方法中 get/set 的后部分。例如属性名为URL，方法是getURL/setURL。</p>
+<p>如果属性名的首字母大写，也是属性名直接用作 getter/setter 方法中 get/set 的后部分。例如属性名为Name，方法是getName/setName，这种是最糟糕的情况，会找不到属性出错，因为默认的属性名是name。</p>
+<p>如果属性名以&quot;is&quot;开头，则getter方法会省掉get，set方法会去掉is。例如属性名为isOK，方法是isOK/setOK。<br>
+需要注意的是有些开发工具自动生成的getter/setter方法，并没有考虑到上面所说的特例情况，会导致bug的产生。</p>
+<p>我们在定义JavaBean的属性名时，应该尽量避免属性名的头两个字母中任意一个为大写以及属性名以&quot;is&quot;开头。</p>
+<h3 id="解决办法">解决办法</h3>
+<figure data-type="image" tabindex="1"><img src="https://static.dingtalk.com/media/lQLPJxa5XJl8G8DNAhDNBIWwf0YWRexFCEEDMMNQhABLAA_1157_528.png?auth_bizType='IM'" alt="img" loading="lazy"></figure>
+<p>这样就可以了</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220927113744031.png" alt="image-20220927113744031" loading="lazy"></figure>
+<p>返回的JSON就是大写的ABC 了，如果在**@JsonProperty**默认值，就会有 大写和小写出来</p>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220927113839384.png" alt="image-20220927113839384" loading="lazy"></figure>
+<p>完美解决问题。</p>
+
+            </div>
+          </article>
+        </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">
+                <h3 class="post-title">
+                  sql server 分页处理
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
+      </div>
+
+      <div class="sm-12 md-4 col sidebar">
+  <div class="paper info-container">
+    <img src="http://dulian.top/images/avatar.png?v=1666140165942" class="no-responsive avatar">
+    <div class="text-muted">dulian 的个人博客，写一点自己喜欢的东西。</div>
+    <div class="social-container">
+      
+        
+          <a href="https://github.com/du-lian" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      最新文章
+    </div>
+    <div class="row">
+      <ul>
+        
+          
+            <li>
+              <a href="http://dulian.top/post/zeng-qiang-for/">增强for（原来地址是一样的）</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">对于微服务的理解</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">sql server 分页处理</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">拉项目idea注解爆红解决方法</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">Error running &#39;UserApplication&#39;: Command line is too long. </a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">树表结构优化</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</a>
+            </li>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      标签列表
+    </div>
+    <div class="row">
+      
+        <a href="http://dulian.top/tag/sS25MVOkt/" class="badge success">
+          工作遇到的难点
+        </a>
+      
+        <a href="http://dulian.top/tag/So9sGtscD/" class="badge secondary">
+          学习
+        </a>
+      
+        <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge secondary">
+          自己遇到的错误，解决办法
+        </a>
+      
+        <a href="http://dulian.top/tag/DZosi5lj5/" class="badge secondary">
+          无聊自己写写觉得对自己有用的东西
+        </a>
+      
+    </div>
+  </div>
+  <div class="paper">
+    Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://dulian.top/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+
+  </body>
+</html>

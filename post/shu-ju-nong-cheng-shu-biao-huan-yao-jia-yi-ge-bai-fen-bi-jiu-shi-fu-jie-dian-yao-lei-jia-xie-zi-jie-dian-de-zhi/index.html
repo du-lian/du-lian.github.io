@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值 | dulian</title>
+<meta name="description" content="dulian 的个人博客，写一点自己喜欢的东西。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="http://dulian.top/favicon.ico?v=1666140165942">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/papercss@1.6.1/dist/paper.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="http://dulian.top/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+  </head>
+  <body>
+  
+    <nav class="navbar border fixed split-nav">
+  <div class="nav-brand">
+    <h3><a href="http://dulian.top">dulian</a></h3>
+  </div>
+  <div class="collapsible">
+    <input id="collapsible1" type="checkbox" name="collapsible1">
+    <button>
+      <label for="collapsible1">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </label>
+    </button>
+    <div class="collapsible-body">
+      <ul class="inline">
+        
+          <li>
+            
+              <a href="/" class="menu">
+                首页
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/archives" class="menu">
+                归档
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/tags" class="menu">
+                标签
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/post/about" class="menu">
+                关于
+              </a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div id="top" class="row site">
+      <div class="sm-12 md-8 col">
+        <div class="paper">
+          <article class="article">
+            <h1>数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</h1>
+            <p class="article-meta">
+              2022-09-21
+              
+                <a href="http://dulian.top/tag/sS25MVOkt/" class="badge ">
+                  工作遇到的难点
+                </a>
+              
+            </p>
+            
+            <div class="post-content" v-pre>
+              <p>树表的构成，我一开始想的是递归的， 但后面想了一下，好像不太好实现，特别我的那个百分比的累加怎么搞？</p>
+<p>基于我的数据库的结构</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220921085648548.png" alt="image-20220921085648548" loading="lazy"></figure>
+<p>我的数据库是有isLeaf 和 parentID的字段。</p>
+<p>可以使用stream流</p>
+<pre><code class="language-java">{
+    //1.一开始先找到所需要的信息
+    xxx.listVo=dao.findAllInfo(xxx);
+    //2.这样就可以开始stream流的开始
+    listVo.parallelStream()
+        .filter(item-&gt; item.getParentID().equals(&quot;-1&quot;))//总结点ID为0
+                    //这一步是item里面有一个子的List的， 然后 
+                    //item就是最上面的结点， list就是全部数据
+                    //这样， 就可以直接找item下面的孩子结点
+        .peek((item)-&gt;{item.setxxxVOList(getChildren(item,list));})
+        .cooect(Collectors.toList());
+}
+/**
+*@param root     上面的总结点
+* @param all     全部列表
+*/
+List&lt;xxxVO&gt; getChildren(xxx root, List&lt;xxx&gt; all){
+    return all.stream()
+        .filter(item-&gt; item.getParentID.equals(root.getID))//用item查找是否属于总结点的孩子结点
+        .peek(item-&gt;{
+            //从这里迭代
+            item.xxxVolist(getChildren(item,all))
+        })
+        .collect(Collectors.toList());
+}
+
+
+</code></pre>
+<p>这样就可以得到一个树型结构了。但我还要再加个百分比。</p>
+<p>就是父节点要累加叶子节点的值</p>
+<p>这能在这个基础上做修改了</p>
+<pre><code class="language-java">{
+    //1.一开始先找到所需要的信息
+    xxx.listVo=dao.findAllInfo(xxx);
+    //1.1因为我要和某个数据做对比，我又不想申请多次数据库请求，我就一开始直接拿那个数据的全部数据出来，存入map，用要对比的字段作为key， 某一个值作为value。
+    Map&lt;String,String&gt; allCxx = xxx.findAllCxxxList();
+    
+    //2.这样就可以开始stream流的开始
+    listVo.parallelStream()
+        .filter(item-&gt; item.getParentID().equals(&quot;-1&quot;))//总结点ID为0
+                    //这一步是item里面有一个子的List的， 然后 
+                    //item就是最上面的结点， list就是全部数据
+                    //这样， 就可以直接找item下面的孩子结点
+        .peek((item)-&gt;{
+            //重写了一个getChildren功能
+            item.setxxxVOList(getChildren(item,list,allCxx));
+            //这里要添加一些判断语句，每个人不一样，
+            if(item.getxxxList()!=null){
+                int len = item.getxxxList().size();
+                        int num = 0; //用于判断下面的item是否等于100？1：0
+
+                        //累和子节点的百分比，放置父节点的百分比
+                        for (xxxVO vo :item.getxxxVOList()){
+                            if (vo.getPercentum().equals(Double.valueOf(100))) {
+                                num++;
+                            }
+                        }
+                        item.setPercentum(Math.floor(num/(len*1.0)*100));
+            }else{
+                //因为如果子孩子没有的话，可以直接判断为空
+                item.setPercentum(Double.valueOf(0));
+            }
+        })
+        .collect(Collectors.toList());
+}
+/**
+*@param root     上面的总结点
+* @param all     全部列表
+*/
+List&lt;xxxVO&gt; getChildren(xxx root, List&lt;xxx&gt; all,Map&lt;String,String&gt; allxxList){
+    return all.stream()
+        .filter(item-&gt; item.getParentID.equals(root.getID))//用item查找是否属于总结点的孩子结点
+        .peek(item-&gt;{
+            //从这里迭代
+            item.xxxVolist(getChildren(item,all,allxxList))
+            //添加一个百分比的功能
+            item = addPercentumLeaf(item,allxxxList);
+                
+        })
+        .collect(Collectors.toList());
+}
+
+/*
+     * @description: 给list的叶子结点添加一个计算百分比功能
+     */
+    private xxxVO addPercentumLeaf(xxx item, Map&lt;String,String&gt; allxxxList) {
+        //是 root的孩子结点就可以进来了。
+        if(&quot;1&quot;.equals(item.getIsLeaf())){ //叶子结点
+            if(item.getProjectID()!=null &amp;&amp; item.getId()!=null){
+//                    这里就是叶子结点了
+//                    开始判断 物业清单，协作清单，协作清单
+                if(allxxxList.containsKey(item.getId())){
+                    item.setPercentum(Double.valueOf(100));
+                }else{
+                    item.setPercentum(Double.valueOf(0));
+                }
+            }else {
+                item.setPercentum(Double.valueOf(0));
+            }
+        }else{
+            //非叶子结点
+            if(item.getManageUnitVOList()!=null){
+                int len = item.getxxxList().size();
+                int num = 0; //用于判断下面的item是否等于100？1：0
+
+                //累和子节点的百分比，放置父节点的百分比
+                for (xxxVO vo :item.getxxxList()){
+                    if (vo.getPercentum().equals(Double.valueOf(100))) {
+                        num++;
+                    }
+                }
+                item.setPercentum(Math.floor(num/(len*1.0)*100));
+
+            }else{
+                item.setPercentum(Double.valueOf(0));
+            }
+        }
+
+        item.setPercentum(item.getPercentum()==null? 0:item.getPercentum());
+
+        return item;
+    }
+</code></pre>
+<p><strong>就大功告成了！！！！！！！！！</strong></p>
+
+            </div>
+          </article>
+        </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">
+                <h3 class="post-title">
+                  拉项目idea注解爆红解决方法
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
+      </div>
+
+      <div class="sm-12 md-4 col sidebar">
+  <div class="paper info-container">
+    <img src="http://dulian.top/images/avatar.png?v=1666140165942" class="no-responsive avatar">
+    <div class="text-muted">dulian 的个人博客，写一点自己喜欢的东西。</div>
+    <div class="social-container">
+      
+        
+          <a href="https://github.com/du-lian" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      最新文章
+    </div>
+    <div class="row">
+      <ul>
+        
+          
+            <li>
+              <a href="http://dulian.top/post/zeng-qiang-for/">增强for（原来地址是一样的）</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">对于微服务的理解</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">sql server 分页处理</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">拉项目idea注解爆红解决方法</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">Error running &#39;UserApplication&#39;: Command line is too long. </a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">树表结构优化</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</a>
+            </li>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      标签列表
+    </div>
+    <div class="row">
+      
+        <a href="http://dulian.top/tag/sS25MVOkt/" class="badge warning">
+          工作遇到的难点
+        </a>
+      
+        <a href="http://dulian.top/tag/So9sGtscD/" class="badge secondary">
+          学习
+        </a>
+      
+        <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge secondary">
+          自己遇到的错误，解决办法
+        </a>
+      
+        <a href="http://dulian.top/tag/DZosi5lj5/" class="badge success">
+          无聊自己写写觉得对自己有用的东西
+        </a>
+      
+    </div>
+  </div>
+  <div class="paper">
+    Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://dulian.top/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+
+  </body>
+</html>

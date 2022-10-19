@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Java中的Date类与SQL中的Date类的相互转换 | dulian</title>
+<meta name="description" content="dulian 的个人博客，写一点自己喜欢的东西。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="http://dulian.top/favicon.ico?v=1666140165942">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/papercss@1.6.1/dist/paper.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="http://dulian.top/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+  </head>
+  <body>
+  
+    <nav class="navbar border fixed split-nav">
+  <div class="nav-brand">
+    <h3><a href="http://dulian.top">dulian</a></h3>
+  </div>
+  <div class="collapsible">
+    <input id="collapsible1" type="checkbox" name="collapsible1">
+    <button>
+      <label for="collapsible1">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </label>
+    </button>
+    <div class="collapsible-body">
+      <ul class="inline">
+        
+          <li>
+            
+              <a href="/" class="menu">
+                首页
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/archives" class="menu">
+                归档
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/tags" class="menu">
+                标签
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/post/about" class="menu">
+                关于
+              </a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div id="top" class="row site">
+      <div class="sm-12 md-8 col">
+        <div class="paper">
+          <article class="article">
+            <h1>Java中的Date类与SQL中的Date类的相互转换</h1>
+            <p class="article-meta">
+              2022-09-08
+              
+                <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge ">
+                  自己遇到的错误，解决办法
+                </a>
+              
+            </p>
+            
+            <div class="post-content" v-pre>
+              <p>错误信息：nested exception is org.apache.ibatis.reflection.ReflectionException: There is no getter for property named 'recorderDate' in 'class</p>
+<p>我数据库的createDate 是 timedate()类型，</p>
+<p>java 是 util datetime类型。</p>
+<p>两者需要相互转化</p>
+<h1 id="数据库中存储日期的三种数据类型">数据库中存储日期的三种数据类型</h1>
+<p>Mysql中经常用来存储日期的数据类型有三种：Date、Datetime、Timestamp。</p>
+<p>Date数据类型：用来存储没有时间的日期。Mysql获取和显示这个类型的格式为“YYYY-MM-DD”。支持的时间范围为“1000-00-00”到“9999-12-31”。</p>
+<p>Datetime类型：存储既有日期又有时间的数据。存储和显示的格式为 “YYYY-MM-DD HH:MM:SS”。支持的时间范围是“1000-00-00 00:00:00”到“9999-12-31 23:59:59”。</p>
+<p>Timestamp类型：也是存储既有日期又有时间的数据。存储和显示的格式跟Datetime一样。支持的时间范围是“1970-01-01 00:00:01”到“2038-01-19 03:14:07”。</p>
+<p>所有不符合上面所述格式的数据都会被转换为相应类型的0值。（0000-00-00或者0000-00-00 00:00:00）</p>
+<h1 id="数据库中三种数据对应java中获取数据的存储结果">数据库中三种数据对应Java中获取数据的存储结果</h1>
+<h3 id="数据库数据类型为date">数据库数据类型为date</h3>
+<pre><code class="language-java">Timestamp ctime = new java.sql.Timestamp(new java.util.Date().getTime());
+pstmt.setTimestamp(11, ctime);
+//存入数据：2019-01-07
+
+java.sql.Date ctime = new java.sql.Date(new java.util.Date().getTime());
+pstmt.setDate(4, ctime);
+//存入数据：2019-01-07
+</code></pre>
+<h3 id="数据库数据类型为datatime">数据库数据类型为datatime</h3>
+<pre><code class="language-java">Timestamp ctime = new java.sql.Timestamp(new java.util.Date().getTime());
+pstmt.setTimestamp(11, ctime);
+//存入数据：2019-01-07 10:35:10
+
+Date ctime = new java.sql.Date(new java.util.Date().getTime());
+pstmt.setDate(4, ctime);
+//存入数据：2019-01-07 00:00:00
+</code></pre>
+<h3 id="数据库数据类型为timestamp">数据库数据类型为timestamp</h3>
+<pre><code class="language-java">java.sql.Timestamp ctime = new java.sql.Timestamp(new java.util.Date().getTime());
+pstmt.setTimestamp(11, ctime);
+//存入数据：2019-01-07 10:42:14
+
+java.sql.Date ctime = new java.sql.Date(new java.util.Date().getTime());
+pstmt.setDate(4, ctime);
+//存入数据：2019-01-07 00:00:00
+</code></pre>
+<p>由datatime和timestamp的对比可以看出，两者在数据库中的存储内容相同（格式不同），关于timestamp类型数据的取值范围问题参考：https://blog.csdn.net/weixin_42259823/article/details/85955951。其次，虽然在java.sql.Timestamp和java.sql.Date中都存储的是完整的时间日期数据，但是在向数据库写入时结果却不相同。</p>
+
+            </div>
+          </article>
+        </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="http://dulian.top/post/a-li-yun-oss-de-wen-jian-wu-fa-shi-yong-url-fang-wen-fan-hui-this-xml-file-does-not-appear-to-have-any-style-information-associated-with-it/">
+                <h3 class="post-title">
+                  阿里云oss的文件无法使用URL访问，返回：This XML file does not appear to have any style information associated with it
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
+      </div>
+
+      <div class="sm-12 md-4 col sidebar">
+  <div class="paper info-container">
+    <img src="http://dulian.top/images/avatar.png?v=1666140165942" class="no-responsive avatar">
+    <div class="text-muted">dulian 的个人博客，写一点自己喜欢的东西。</div>
+    <div class="social-container">
+      
+        
+          <a href="https://github.com/du-lian" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      最新文章
+    </div>
+    <div class="row">
+      <ul>
+        
+          
+            <li>
+              <a href="http://dulian.top/post/zeng-qiang-for/">增强for（原来地址是一样的）</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">对于微服务的理解</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">sql server 分页处理</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">拉项目idea注解爆红解决方法</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">Error running &#39;UserApplication&#39;: Command line is too long. </a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">树表结构优化</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</a>
+            </li>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      标签列表
+    </div>
+    <div class="row">
+      
+        <a href="http://dulian.top/tag/sS25MVOkt/" class="badge secondary">
+          工作遇到的难点
+        </a>
+      
+        <a href="http://dulian.top/tag/So9sGtscD/" class="badge success">
+          学习
+        </a>
+      
+        <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge ">
+          自己遇到的错误，解决办法
+        </a>
+      
+        <a href="http://dulian.top/tag/DZosi5lj5/" class="badge success">
+          无聊自己写写觉得对自己有用的东西
+        </a>
+      
+    </div>
+  </div>
+  <div class="paper">
+    Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://dulian.top/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+
+  </body>
+</html>

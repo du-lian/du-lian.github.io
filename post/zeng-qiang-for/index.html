@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>增强for（原来地址是一样的） | dulian</title>
+<meta name="description" content="dulian 的个人博客，写一点自己喜欢的东西。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="http://dulian.top/favicon.ico?v=1666140165942">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/papercss@1.6.1/dist/paper.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="http://dulian.top/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+  </head>
+  <body>
+  
+    <nav class="navbar border fixed split-nav">
+  <div class="nav-brand">
+    <h3><a href="http://dulian.top">dulian</a></h3>
+  </div>
+  <div class="collapsible">
+    <input id="collapsible1" type="checkbox" name="collapsible1">
+    <button>
+      <label for="collapsible1">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </label>
+    </button>
+    <div class="collapsible-body">
+      <ul class="inline">
+        
+          <li>
+            
+              <a href="/" class="menu">
+                首页
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/archives" class="menu">
+                归档
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/tags" class="menu">
+                标签
+              </a>
+            
+          </li>
+        
+          <li>
+            
+              <a href="/post/about" class="menu">
+                关于
+              </a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div id="top" class="row site">
+      <div class="sm-12 md-8 col">
+        <div class="paper">
+          <article class="article">
+            <h1>增强for（原来地址是一样的）</h1>
+            <p class="article-meta">
+              2022-10-13
+              
+                <a href="http://dulian.top/tag/sS25MVOkt/" class="badge secondary">
+                  工作遇到的难点
+                </a>
+              
+            </p>
+            
+              <img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017100129119.png" alt="增强for（原来地址是一样的）">
+            
+            <div class="post-content" v-pre>
+              <p>今天开发遇到一件怪事，需求是：把某条数据可以复制给其他同类型的数据。要除了某两个值不一样以外，都要一模一样。</p>
+<p>我的流程就是，<br>
+先找个A的值，<br>
+然后把B的值，保存需要保留的两个值<br>
+然后把B删了<br>
+然后再把A的值插入进入，但插入前先把A中的两个值修改成保存的那两个值。</p>
+<p>然后一直复制单条可以成功，多条就只有最后一个才能成功， 这样我们就考虑应该是list子表的id都拿到了，导致了更新的问题。<br>
+后面我就在查询子表的时候把id去掉， 但还是出现了上面的那个问题。</p>
+<p>就一直找，找到了list子表的id虽然去掉了， 为空了， 但到插入的时候，会自动赋值了一个id， 导致一直都是更新， 而不是插入。</p>
+<p>一直都是传值进去。因为公司架构的一些问题，苦恼获取的list里面是有id这个值的，我们就想把这个id去掉，这样就不会造成更新操作，而是直接插入的操作。</p>
+<p>后面在增强for的哪里 把id设置为null，就可以进行正常的插入的功能。不理解</p>
+<p>好奇怪的一个错误，还是没看懂， 使用增强for，为什么会有id呢？</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017092435193.png" alt="image-20221017092435193" loading="lazy"></figure>
+<p>我传了一个vo进来，vo里面带了concreteList列表。然后在hoslZjConcreteService.save之前,vo的concreteList里面的id还是null的。</p>
+<p>vo.concreteList</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017092911005.png" alt="image-20221017092911005" loading="lazy"></figure>
+<p>for循环里面的concrete</p>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017093007474.png" alt="image-20221017093007474" loading="lazy"></figure>
+<p>然后save之后，直接就赋值了。给vo的concreteList赋值了。</p>
+<figure data-type="image" tabindex="4"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017092635829.png" alt="image-20221017092635829" loading="lazy"></figure>
+<p>后面查看了save()方法，不懂为什么直接赋值了</p>
+<figure data-type="image" tabindex="5"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094509770.png" alt="image-20221017094509770" loading="lazy"></figure>
+<p>这里是 || isNewRecord虽然是false，但isBlank(getId())为true。</p>
+<p>故直接走插入语句</p>
+<p>插入之前也设置了id，故有id，但为什么vo.list里面有id呢？不太懂</p>
+<figure data-type="image" tabindex="6"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094655332.png" alt="image-20221017094655332" loading="lazy"></figure>
+<p>后面就有了</p>
+<p>vo.list</p>
+<figure data-type="image" tabindex="7"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094819298.png" alt="image-20221017094819298" loading="lazy"></figure>
+<p>concrete</p>
+<figure data-type="image" tabindex="8"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094900322.png" alt="image-20221017094900322" loading="lazy"></figure>
+<p>后面设置为null的时候，都为null。</p>
+<p>难道增强for不是把一个值赋值给一个新值吗？</p>
+<h3 id="原理">原理</h3>
+<ol>
+<li>使用条件<br>
+首先，<strong>当且仅当</strong> 一个类实现了 Iterable 接口时，它才能使用该语法糖。</li>
+<li>反编译代码</li>
+</ol>
+<pre><code class="language-java">// 此处假设 MenuItem 实现了 Iterable 接口，以下是源代码
+for (MenuItem menuItem: menuItems) {
+	System.out.println(menuItem);
+}
+ 
+// 以下是上面的源代码反编译后的代码
+Iterator var1 = this.menuItems.iterator();
+while(var1.hasNext()) {
+	MenuItem menuItem = (MenuItem)var1.next();
+	System.out.println(menuItem);
+}
+</code></pre>
+<ol>
+<li>结论<br>
+看到反编译后的代码，一目了然，我们自然清楚了其中的原理。<br>
+其实就是在编译时，编译器将 该语法糖代码 转换为了普通语法的代码。</li>
+<li>延伸<br>
+如果一个类未实现 Iterable 接口，而对其使用该语法糖，则编译时报错：foreach not applicable to type 'java.lang.String'。<br>
+而我们查看 Iterable 接口的源码，会发现其中有个 forEach() 方法，那么会不会和这个方法有关呢？</li>
+</ol>
+<p>我还加了一个测试</p>
+<p>果然是一样的</p>
+<figure data-type="image" tabindex="9"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017100129119.png" alt="image-20221017100129119" loading="lazy"></figure>
+
+            </div>
+          </article>
+        </div>
+        <div class="paper" data-aos="fade-in">
+          
+            <div class="next-post">
+              <div class="next">
+                下一篇
+              </div>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">
+                <h3 class="post-title">
+                  对于微服务的理解
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+        
+          
+            <div class="paper" data-aos="fade-in">
+              <div id="gitalk-container"></div>
+            </div>
+          
+
+          
+        
+      </div>
+
+      <div class="sm-12 md-4 col sidebar">
+  <div class="paper info-container">
+    <img src="http://dulian.top/images/avatar.png?v=1666140165942" class="no-responsive avatar">
+    <div class="text-muted">dulian 的个人博客，写一点自己喜欢的东西。</div>
+    <div class="social-container">
+      
+        
+          <a href="https://github.com/du-lian" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      最新文章
+    </div>
+    <div class="row">
+      <ul>
+        
+          
+            <li>
+              <a href="http://dulian.top/post/zeng-qiang-for/">增强for（原来地址是一样的）</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">对于微服务的理解</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/sql-server-fen-ye-chu-li/">sql server 分页处理</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">拉项目idea注解爆红解决方法</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">Error running &#39;UserApplication&#39;: Command line is too long. </a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">树表结构优化</a>
+            </li>
+          
+        
+          
+            <li>
+              <a href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</a>
+            </li>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div>
+  </div>
+  <div class="paper">
+    <div class="sidebar-title">
+      标签列表
+    </div>
+    <div class="row">
+      
+        <a href="http://dulian.top/tag/sS25MVOkt/" class="badge ">
+          工作遇到的难点
+        </a>
+      
+        <a href="http://dulian.top/tag/So9sGtscD/" class="badge secondary">
+          学习
+        </a>
+      
+        <a href="http://dulian.top/tag/QDUlSFNaS/" class="badge secondary">
+          自己遇到的错误，解决办法
+        </a>
+      
+        <a href="http://dulian.top/tag/DZosi5lj5/" class="badge secondary">
+          无聊自己写写觉得对自己有用的东西
+        </a>
+      
+    </div>
+  </div>
+  <div class="paper">
+    Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="http://dulian.top/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '',
+        repo: '',
+        owner: '',
+        admin: [''],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+
+  </body>
+</html>

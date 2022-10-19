@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>http://dulian.top</id>
+    <title>dulian</title>
+    <updated>2022-10-19T00:42:48.385Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="http://dulian.top"/>
+    <link rel="self" href="http://dulian.top/atom.xml"/>
+    <subtitle>dulian 的个人博客，写一点自己喜欢的东西。</subtitle>
+    <logo>http://dulian.top/images/avatar.png</logo>
+    <icon>http://dulian.top/favicon.ico</icon>
+    <rights>All rights reserved 2022, dulian</rights>
+    <entry>
+        <title type="html"><![CDATA[增强for（原来地址是一样的）]]></title>
+        <id>http://dulian.top/post/zeng-qiang-for/</id>
+        <link href="http://dulian.top/post/zeng-qiang-for/">
+        </link>
+        <updated>2022-10-13T12:20:41.000Z</updated>
+        <content type="html"><![CDATA[<p>今天开发遇到一件怪事，需求是：把某条数据可以复制给其他同类型的数据。要除了某两个值不一样以外，都要一模一样。</p>
+<p>我的流程就是，<br>
+先找个A的值，<br>
+然后把B的值，保存需要保留的两个值<br>
+然后把B删了<br>
+然后再把A的值插入进入，但插入前先把A中的两个值修改成保存的那两个值。</p>
+<p>然后一直复制单条可以成功，多条就只有最后一个才能成功， 这样我们就考虑应该是list子表的id都拿到了，导致了更新的问题。<br>
+后面我就在查询子表的时候把id去掉， 但还是出现了上面的那个问题。</p>
+<p>就一直找，找到了list子表的id虽然去掉了， 为空了， 但到插入的时候，会自动赋值了一个id， 导致一直都是更新， 而不是插入。</p>
+<p>一直都是传值进去。因为公司架构的一些问题，苦恼获取的list里面是有id这个值的，我们就想把这个id去掉，这样就不会造成更新操作，而是直接插入的操作。</p>
+<p>后面在增强for的哪里 把id设置为null，就可以进行正常的插入的功能。不理解</p>
+<p>好奇怪的一个错误，还是没看懂， 使用增强for，为什么会有id呢？</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017092435193.png" alt="image-20221017092435193" loading="lazy"></figure>
+<p>我传了一个vo进来，vo里面带了concreteList列表。然后在hoslZjConcreteService.save之前,vo的concreteList里面的id还是null的。</p>
+<p>vo.concreteList</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017092911005.png" alt="image-20221017092911005" loading="lazy"></figure>
+<p>for循环里面的concrete</p>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017093007474.png" alt="image-20221017093007474" loading="lazy"></figure>
+<p>然后save之后，直接就赋值了。给vo的concreteList赋值了。</p>
+<figure data-type="image" tabindex="4"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017092635829.png" alt="image-20221017092635829" loading="lazy"></figure>
+<p>后面查看了save()方法，不懂为什么直接赋值了</p>
+<figure data-type="image" tabindex="5"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094509770.png" alt="image-20221017094509770" loading="lazy"></figure>
+<p>这里是 || isNewRecord虽然是false，但isBlank(getId())为true。</p>
+<p>故直接走插入语句</p>
+<p>插入之前也设置了id，故有id，但为什么vo.list里面有id呢？不太懂</p>
+<figure data-type="image" tabindex="6"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094655332.png" alt="image-20221017094655332" loading="lazy"></figure>
+<p>后面就有了</p>
+<p>vo.list</p>
+<figure data-type="image" tabindex="7"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094819298.png" alt="image-20221017094819298" loading="lazy"></figure>
+<p>concrete</p>
+<figure data-type="image" tabindex="8"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017094900322.png" alt="image-20221017094900322" loading="lazy"></figure>
+<p>后面设置为null的时候，都为null。</p>
+<p>难道增强for不是把一个值赋值给一个新值吗？</p>
+<h3 id="原理">原理</h3>
+<ol>
+<li>使用条件<br>
+首先，<strong>当且仅当</strong> 一个类实现了 Iterable 接口时，它才能使用该语法糖。</li>
+<li>反编译代码</li>
+</ol>
+<pre><code class="language-java">// 此处假设 MenuItem 实现了 Iterable 接口，以下是源代码
+for (MenuItem menuItem: menuItems) {
+	System.out.println(menuItem);
+}
+ 
+// 以下是上面的源代码反编译后的代码
+Iterator var1 = this.menuItems.iterator();
+while(var1.hasNext()) {
+	MenuItem menuItem = (MenuItem)var1.next();
+	System.out.println(menuItem);
+}
+</code></pre>
+<ol>
+<li>结论<br>
+看到反编译后的代码，一目了然，我们自然清楚了其中的原理。<br>
+其实就是在编译时，编译器将 该语法糖代码 转换为了普通语法的代码。</li>
+<li>延伸<br>
+如果一个类未实现 Iterable 接口，而对其使用该语法糖，则编译时报错：foreach not applicable to type 'java.lang.String'。<br>
+而我们查看 Iterable 接口的源码，会发现其中有个 forEach() 方法，那么会不会和这个方法有关呢？</li>
+</ol>
+<p>我还加了一个测试</p>
+<p>果然是一样的</p>
+<figure data-type="image" tabindex="9"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20221017100129119.png" alt="image-20221017100129119" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[对于微服务的理解]]></title>
+        <id>http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/</id>
+        <link href="http://dulian.top/post/dui-yu-wei-fu-wu-de-li-jie/">
+        </link>
+        <updated>2022-10-08T01:34:12.000Z</updated>
+        <content type="html"><![CDATA[<p>其实为什么是微服务， 其实就是把一个整件的东西，<strong>拆分为一个个按功能模块来划分的服务框架。每一个功能模块都能独立自治， 同时每个拆分出来的功能模块之间 只能通过轻量的rest api接口进行交互</strong>。</p>
+<p>例如：</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/%E4%B8%80%E5%BC%A0%E5%9B%BE%E5%AE%8C%E6%95%B4%E8%AF%B4%E6%98%8E%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3.png" alt="一张图完整说明微服务基本概念和核心思想" loading="lazy"></figure>
+<p>左边就是一个简单的单体架构，后面是拆分出来的微服务架构。</p>
+<p>每一个功能模块对应一个数据库，并且可以独立的自治。</p>
+<p>其实当我们把它从单体架构拆分出来，三者之间应该还是会有大量的交互。这时，我们就需要去处理组件和微服务之间的接口交互。我们可以通过走grpc接口， 或者rest api接口。 用来实现轻量级的接口调用。</p>
+<p>但这就有一个问题了，为什么招标中心知道采购中心或者基础数据的接口呢？这就需要我们nacos注册中心和发现中心</p>
+<p>服务注册和发现中心（nacos）：每生成一个功能模块，就先注册到注册中心去，然后就可以通过注册中心找到其他功能模块对外展示的接口地址。就可以完成调用。</p>
+<p>Feign（服务的消费端）：可以让另一个功能模块的rest api接口 好像就是自己本身的接口一个，这么方便的调用。 Feign这个组件的功能在这里做了一层包装和代理。</p>
+<p>这里又出现了一个问题：就是前端如何调用后端的接口呢？前端和app的开发方法又不太一样， 调用接口的方法可能也有点差异。</p>
+<p>这样我们就可以使用了gateway网关服务。</p>
+<p>微服务网关：统一的提供一个统一的出口地址。一个Http访问的一个地址。这样，无论是前端还是app端，调用的接口都是一致的。</p>
+<p>为什么有了一个微服务网关， 还需要一个api的网关</p>
+<h3 id="微服务网关和api网关的区别">微服务网关和API网关的区别？</h3>
+<p>如果只有一个微服务网关， 那前端的流量代理只能到微服务这个力度。比如只能到达一个招标中心的力度。 但你用了api网关，那么整个接口请求的流量的代理是可以到一个个API接口服务的颗粒度。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[写微服务的时候，遇见了运行没事， 但进入debug模式就一直卡死]]></title>
+        <id>http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/</id>
+        <link href="http://dulian.top/post/xie-wei-fu-wu-de-shi-hou-yu-jian-liao-yun-xing-mei-shi-dan-jin-ru-debug-mo-shi-jiu-yi-zhi-qia-si/">
+        </link>
+        <updated>2022-09-28T01:14:25.000Z</updated>
+        <content type="html"><![CDATA[<p>因为当前项目是<a href="https://so.csdn.net/so/search?q=%E5%BE%AE%E6%9C%8D%E5%8A%A1&amp;spm=1001.2101.3001.7020">微服务</a>架构，调试的时候开的模块启动太多把电脑整崩溃了，电脑强制关机后可能影响到了一些正在运行调试模式的模块，还停在debug节点上，然后再重启后调试模式就运行不起来了，也不报错，但就是卡在半路上，</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220928091218796.png" alt="image-20220928091218796" loading="lazy"></figure>
+<p>这里一开始并不知道是调试模式的问题，只看到服务启动不起来，所以尝试了重启云端服务器，重启IDEA，都还是解决不了，然后头儿清理了电脑内存(点到运行模式，正常)，调试模式还是不行，最终尝试将IDEA的debug断点清除，再重启就好了</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220928091330986.png" alt="image-20220928091330986" loading="lazy"></figure>
+<p>下次如果这样， 可以直接点旁边的小东西，就可以直接启动了</p>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220928091400478.png" alt="image-20220928091400478" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[后台返回给前端json字段的大小写问题，Lombok的坑@Data，@Getter]]></title>
+        <id>http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/</id>
+        <link href="http://dulian.top/post/hou-tai-fan-hui-gei-qian-duan-json-zi-duan-de-da-xiao-xie-wen-ti-lombok-de-keng-datagetter/">
+        </link>
+        <updated>2022-09-27T03:39:14.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="lombok的data注解踩坑setter的大小写问题">Lombok的@Data注解踩坑，@Setter的大小写问题</h3>
+<p>以前在处理前端请求的实体类的时候，都是用Lombok的@Data注解对实体类进行getter、setter以及toString的声名，今天处理实体类的时候，发现生成的setter方法和Java Bean的命名规则不一致。（@Data的作用是为我们定义的字段添加Lombok的@ToString、@EqualsAndHashCode、 @Getter方法、@RequiredArgsConstructor 和 为非final字段添加@Setter）</p>
+<p>我要生成getter、setter的字段是：</p>
+<pre><code class="language-java">private List&lt;Map&lt;String,String&gt;&gt; yAxis;
+private List&lt;XAxis&gt; xAxis;
+</code></pre>
+<p>在我使用@Data时生成的代码和实际要生成的代码比较如下：</p>
+<pre><code class="language-java">//@Data生成的setter方法
+setYAxis()  setXAxis()
+//实际需要的setter方法
+setyAxis()  setxAxis()
+</code></pre>
+<p>Java Bean的4种命名特殊规范中有一种情况：<strong>如果属性名的第二个字母大写，那么该属性名直接用作 getter/setter 方法中 get/set 的后部分</strong>，就是说大小写不变。例如属性名为uName，方法是getuName/setuName。</p>
+<p>字段的<strong>首字母大小写</strong>发生了变化。这个变化意味着，我在使用@Data注解生成的getter方法得到的属性值是&quot;<strong>yaxis</strong>&quot;和&quot;<strong>xaxis</strong>&quot;，而实际上我需要的属性值为&quot;<strong>yAxis</strong>&quot;和&quot;<strong>xAxis</strong>&quot;，这也就导致了我返回给前端的数据，前端无法识别，从而出错。</p>
+<h3 id="javabean-gettersetter命名规范特例">JavaBean getter/setter命名规范[特例]</h3>
+<p>一般JavaBean属性以小写字母开头，驼峰命名格式，相应的 getter/setter 方法是 get/set 接上首字母大写的属性名。例如：属性名为userName，其对应的getter/setter 方法是 getUserName/setUserName。</p>
+<p>但是，还有一些特殊情况：</p>
+<p>如果属性名的第二个字母大写，那么该属性名直接用作 getter/setter 方法中 get/set 的后部分，就是说大小写不变。例如属性名为uName，方法是getuName/setuName。</p>
+<p>如果属性名的前两个字母是大写（一般的专有名词和缩略词都会大写），也是属性名直接用作 getter/setter 方法中 get/set 的后部分。例如属性名为URL，方法是getURL/setURL。</p>
+<p>如果属性名的首字母大写，也是属性名直接用作 getter/setter 方法中 get/set 的后部分。例如属性名为Name，方法是getName/setName，这种是最糟糕的情况，会找不到属性出错，因为默认的属性名是name。</p>
+<p>如果属性名以&quot;is&quot;开头，则getter方法会省掉get，set方法会去掉is。例如属性名为isOK，方法是isOK/setOK。<br>
+需要注意的是有些开发工具自动生成的getter/setter方法，并没有考虑到上面所说的特例情况，会导致bug的产生。</p>
+<p>我们在定义JavaBean的属性名时，应该尽量避免属性名的头两个字母中任意一个为大写以及属性名以&quot;is&quot;开头。</p>
+<h3 id="解决办法">解决办法</h3>
+<figure data-type="image" tabindex="1"><img src="https://static.dingtalk.com/media/lQLPJxa5XJl8G8DNAhDNBIWwf0YWRexFCEEDMMNQhABLAA_1157_528.png?auth_bizType='IM'" alt="img" loading="lazy"></figure>
+<p>这样就可以了</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220927113744031.png" alt="image-20220927113744031" loading="lazy"></figure>
+<p>返回的JSON就是大写的ABC 了，如果在**@JsonProperty**默认值，就会有 大写和小写出来</p>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220927113839384.png" alt="image-20220927113839384" loading="lazy"></figure>
+<p>完美解决问题。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[sql server 分页处理]]></title>
+        <id>http://dulian.top/post/sql-server-fen-ye-chu-li/</id>
+        <link href="http://dulian.top/post/sql-server-fen-ye-chu-li/">
+        </link>
+        <updated>2022-09-25T07:42:18.000Z</updated>
+        <content type="html"><![CDATA[<p>项目的需求是想要返回的数据要分页处理，我一开始使用page，但不行，我就使用了row_number()</p>
+<p>一用一个爽</p>
+<p>较通用,</p>
+<pre><code class="language-java">	create procedure p_News
+	@pageSize int,@pageIndex int 
+	as
+	begin
+	select * from(
+	select *,Row_Number() over(order by Id) as [$Row_Num] from News 
+	--where [$Row_Num]&lt;=3 这个时候行号不能用,必须全部执行完毕以后才会产生
+	)as _temp where [$Row_Num] between (@pageIndex*pageSize+1) and (@pageIndex+1)*@pageSize;
+
+	end
+	--注意参数的设置,java调用时 String sql=&quot;{call p_News(?,?)}&quot;
+	--select Row_Number() over(order by id) RN,* from News where id ID&gt;3 给最终的结果编一个号,一个连续的号
+	--order by必须写在括号里面,因为写在from News 后面会报 sql的错误:除非另外还指定了 TOP 或 FOR XML，否则，ORDER BY 子句在视图、内联函数、派生表、子查询和公用表表达式中无效。
+</code></pre>
+<p>我基于自己的需求，在mapper那里面修改了</p>
+<pre><code class="language-java">select top ${page.pageSize} *
+		from (select row_number()
+						 over(order by id asc) as rownumber,*
+			  from test
+			  where muid in
+					(select id
+					 from student
+					 where projectId = #{xxx.projectid}
+					 and parentIDs like '%' + #{xxx.muid} + '%'
+					)
+		    ) temp_row
+		where rownumber &gt; ((${page.pageNo} - 1) * ${page.pageSize})
+</code></pre>
+<p>这里还遇到了一个小问题，</p>
+<p>mybatis运行mssql语句的时候，<strong>报这个错mssql报错： java.sql.SQLException: '@P0' 附近有语法错误</strong></p>
+<p>原因：</p>
+<p>Top后面是不允许使用？占位符，‘@P0’附近有语法错误就是由此引起的。需使用拼接sql语句的方法。</p>
+<p>@P0指的是第一个参数附近有错误，要是在第二个参数(?)附近，则错误为'@P1' 附近有语法错误。</p>
+<p>解决：</p>
+<p>所以在mybatis中，传参的写法应该是： <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mrow><mi>X</mi><mi>X</mi><mi>X</mi></mrow><mi mathvariant="normal">这</mi><mi mathvariant="normal">样</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">动</mi><mi mathvariant="normal">态</mi><mi mathvariant="normal">拼</mi><mi mathvariant="normal">接</mi><mi mathvariant="normal">所</mi><mi mathvariant="normal">以</mi><mi mathvariant="normal">要</mi><mi mathvariant="normal">清</mi><mi mathvariant="normal">楚</mi><mi mathvariant="normal">自</mi><mi mathvariant="normal">己</mi><mi mathvariant="normal">的</mi></mrow><annotation encoding="application/x-tex">{XXX}   这样是动态拼接
+所以要清楚自己的</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="mord mathdefault" style="margin-right:0.07847em;">X</span></span><span class="mord cjk_fallback">这</span><span class="mord cjk_fallback">样</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">动</span><span class="mord cjk_fallback">态</span><span class="mord cjk_fallback">拼</span><span class="mord cjk_fallback">接</span><span class="mord cjk_fallback">所</span><span class="mord cjk_fallback">以</span><span class="mord cjk_fallback">要</span><span class="mord cjk_fallback">清</span><span class="mord cjk_fallback">楚</span><span class="mord cjk_fallback">自</span><span class="mord cjk_fallback">己</span><span class="mord cjk_fallback">的</span></span></span></span> 和 #符号</p>
+<p>使用$的时候</p>
+<p>值是直接进去的，比较适用于数值类型</p>
+<p>#就是比较适用字符串，会自带''这两个点，不会报错</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据弄成树表，还要加一个百分比，就是父节点要累加叶子节点的值]]></title>
+        <id>http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/</id>
+        <link href="http://dulian.top/post/shu-ju-nong-cheng-shu-biao-huan-yao-jia-yi-ge-bai-fen-bi-jiu-shi-fu-jie-dian-yao-lei-jia-xie-zi-jie-dian-de-zhi/">
+        </link>
+        <updated>2022-09-21T01:23:16.000Z</updated>
+        <content type="html"><![CDATA[<p>树表的构成，我一开始想的是递归的， 但后面想了一下，好像不太好实现，特别我的那个百分比的累加怎么搞？</p>
+<p>基于我的数据库的结构</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220921085648548.png" alt="image-20220921085648548" loading="lazy"></figure>
+<p>我的数据库是有isLeaf 和 parentID的字段。</p>
+<p>可以使用stream流</p>
+<pre><code class="language-java">{
+    //1.一开始先找到所需要的信息
+    xxx.listVo=dao.findAllInfo(xxx);
+    //2.这样就可以开始stream流的开始
+    listVo.parallelStream()
+        .filter(item-&gt; item.getParentID().equals(&quot;-1&quot;))//总结点ID为0
+                    //这一步是item里面有一个子的List的， 然后 
+                    //item就是最上面的结点， list就是全部数据
+                    //这样， 就可以直接找item下面的孩子结点
+        .peek((item)-&gt;{item.setxxxVOList(getChildren(item,list));})
+        .cooect(Collectors.toList());
+}
+/**
+*@param root     上面的总结点
+* @param all     全部列表
+*/
+List&lt;xxxVO&gt; getChildren(xxx root, List&lt;xxx&gt; all){
+    return all.stream()
+        .filter(item-&gt; item.getParentID.equals(root.getID))//用item查找是否属于总结点的孩子结点
+        .peek(item-&gt;{
+            //从这里迭代
+            item.xxxVolist(getChildren(item,all))
+        })
+        .collect(Collectors.toList());
+}
+
+
+</code></pre>
+<p>这样就可以得到一个树型结构了。但我还要再加个百分比。</p>
+<p>就是父节点要累加叶子节点的值</p>
+<p>这能在这个基础上做修改了</p>
+<pre><code class="language-java">{
+    //1.一开始先找到所需要的信息
+    xxx.listVo=dao.findAllInfo(xxx);
+    //1.1因为我要和某个数据做对比，我又不想申请多次数据库请求，我就一开始直接拿那个数据的全部数据出来，存入map，用要对比的字段作为key， 某一个值作为value。
+    Map&lt;String,String&gt; allCxx = xxx.findAllCxxxList();
+    
+    //2.这样就可以开始stream流的开始
+    listVo.parallelStream()
+        .filter(item-&gt; item.getParentID().equals(&quot;-1&quot;))//总结点ID为0
+                    //这一步是item里面有一个子的List的， 然后 
+                    //item就是最上面的结点， list就是全部数据
+                    //这样， 就可以直接找item下面的孩子结点
+        .peek((item)-&gt;{
+            //重写了一个getChildren功能
+            item.setxxxVOList(getChildren(item,list,allCxx));
+            //这里要添加一些判断语句，每个人不一样，
+            if(item.getxxxList()!=null){
+                int len = item.getxxxList().size();
+                        int num = 0; //用于判断下面的item是否等于100？1：0
+
+                        //累和子节点的百分比，放置父节点的百分比
+                        for (xxxVO vo :item.getxxxVOList()){
+                            if (vo.getPercentum().equals(Double.valueOf(100))) {
+                                num++;
+                            }
+                        }
+                        item.setPercentum(Math.floor(num/(len*1.0)*100));
+            }else{
+                //因为如果子孩子没有的话，可以直接判断为空
+                item.setPercentum(Double.valueOf(0));
+            }
+        })
+        .collect(Collectors.toList());
+}
+/**
+*@param root     上面的总结点
+* @param all     全部列表
+*/
+List&lt;xxxVO&gt; getChildren(xxx root, List&lt;xxx&gt; all,Map&lt;String,String&gt; allxxList){
+    return all.stream()
+        .filter(item-&gt; item.getParentID.equals(root.getID))//用item查找是否属于总结点的孩子结点
+        .peek(item-&gt;{
+            //从这里迭代
+            item.xxxVolist(getChildren(item,all,allxxList))
+            //添加一个百分比的功能
+            item = addPercentumLeaf(item,allxxxList);
+                
+        })
+        .collect(Collectors.toList());
+}
+
+/*
+     * @description: 给list的叶子结点添加一个计算百分比功能
+     */
+    private xxxVO addPercentumLeaf(xxx item, Map&lt;String,String&gt; allxxxList) {
+        //是 root的孩子结点就可以进来了。
+        if(&quot;1&quot;.equals(item.getIsLeaf())){ //叶子结点
+            if(item.getProjectID()!=null &amp;&amp; item.getId()!=null){
+//                    这里就是叶子结点了
+//                    开始判断 物业清单，协作清单，协作清单
+                if(allxxxList.containsKey(item.getId())){
+                    item.setPercentum(Double.valueOf(100));
+                }else{
+                    item.setPercentum(Double.valueOf(0));
+                }
+            }else {
+                item.setPercentum(Double.valueOf(0));
+            }
+        }else{
+            //非叶子结点
+            if(item.getManageUnitVOList()!=null){
+                int len = item.getxxxList().size();
+                int num = 0; //用于判断下面的item是否等于100？1：0
+
+                //累和子节点的百分比，放置父节点的百分比
+                for (xxxVO vo :item.getxxxList()){
+                    if (vo.getPercentum().equals(Double.valueOf(100))) {
+                        num++;
+                    }
+                }
+                item.setPercentum(Math.floor(num/(len*1.0)*100));
+
+            }else{
+                item.setPercentum(Double.valueOf(0));
+            }
+        }
+
+        item.setPercentum(item.getPercentum()==null? 0:item.getPercentum());
+
+        return item;
+    }
+</code></pre>
+<p><strong>就大功告成了！！！！！！！！！</strong></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[拉项目idea注解爆红解决方法]]></title>
+        <id>http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/</id>
+        <link href="http://dulian.top/post/la-xiang-mu-idea-zhu-jie-bao-hong-jie-jue-fang-fa/">
+        </link>
+        <updated>2022-09-18T04:31:40.000Z</updated>
+        <content type="html"><![CDATA[<p>自己尝试解决的办法：<br>
+1.点击注解挨个导包，但是日志Slf4j爆红，我以为是<a href="https://so.csdn.net/so/search?q=lombok&amp;spm=1001.2101.3001.7020">lombok</a>没有下载，重新下载也不行。<br>
+2.重启项目，重新加载<a href="https://so.csdn.net/so/search?q=maven&amp;spm=1001.2101.3001.7020">maven</a>都不行。</p>
+<p>3.疯狂的lnvalidate and Restart都不行</p>
+<h3 id="解决办法">解决办法</h3>
+<p>1.首先删掉项目目录的idea文件，如下图所示。</p>
+<figure data-type="image" tabindex="1"><img src="C:%5CUsers%5C%E9%83%BD%E6%81%8B%5CDesktop%5C%E5%BC%80%E5%8F%91%E8%A7%84%E6%A8%A1%5Cimage-20220917144825593.png" alt="image-20220917144825593" loading="lazy"></figure>
+<p>2.点击file ，点击 lnvalidate and Restart。此操作是还原我们刚刚删除的idea文件</p>
+<figure data-type="image" tabindex="2"><img src="C:%5CUsers%5C%E9%83%BD%E6%81%8B%5CDesktop%5C%E5%BC%80%E5%8F%91%E8%A7%84%E6%A8%A1%5Cimage-20220917144840466.png" alt="image-20220917144840466" loading="lazy"></figure>
+<p>3.弹出弹框，继续点击（lnvalidate and Restart）</p>
+<p>4.耐心等待即可（时间可能会长一点）。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Error running 'UserApplication': Command line is too long. ]]></title>
+        <id>http://dulian.top/post/error-running-userapplication-command-line-is-too-long/</id>
+        <link href="http://dulian.top/post/error-running-userapplication-command-line-is-too-long/">
+        </link>
+        <updated>2022-09-14T09:41:25.000Z</updated>
+        <content type="html"><![CDATA[<p>解决办法</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220914174047930.png" alt="image-20220914174047930" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[树表结构优化]]></title>
+        <id>http://dulian.top/post/shu-biao-jie-gou-you-hua/</id>
+        <link href="http://dulian.top/post/shu-biao-jie-gou-you-hua/">
+        </link>
+        <updated>2022-09-14T03:50:33.000Z</updated>
+        <content type="html"><![CDATA[<p>今天接触公司的一个项目，发现从80W条数据弄成了树表结构，层级结构。导致获取的时候需要1-2分钟。非常的臃肿。</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220914114647135.png" alt="image-20220914114647135" loading="lazy"></figure>
+<p>这么大就不怪需要的时间长了。</p>
+<p>我后面查看了一下表的结构</p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220914114825829.png" alt="image-20220914114825829" loading="lazy"></figure>
+<p>我的思路是 先查询首结点。</p>
+<p>再通过首节点的id查询  因为下一层节点有parentID和 isLeaf。 这样就可以</p>
+<p>往下查询 直到查询到叶子节点。</p>
+<pre><code>一开始先查找 isLeaf=0 and treeNode is not null   这样可以等到第一层的父子节点
+
+二： 通过第一层得到的内容，如果前端点击， 那就可以通过第一层的id 和isLeaf =1 and treeNode is not null。 
+
+这样可以重复调用，  知道isLeaf 等于1就是子节点
+</code></pre>
+<p>不过这样就需要大量请求服务器了。 只是自己的一个尝试。 我试过是可以的。不过没实际操作过。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[nginx启动失败（bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)]]></title>
+        <id>http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/</id>
+        <link href="http://dulian.top/post/nginx-qi-dong-shi-bai-bind-to-000080-failed-10013-an-attempt-was-made-to-access-a-socket-in-a-way-forbidden-by-its-access-permissions/">
+        </link>
+        <updated>2022-09-13T03:55:45.000Z</updated>
+        <content type="html"><![CDATA[<p>在Windows安装了下nginx启动失败，报错nginx: [emerg] bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)</p>
+<figure data-type="image" tabindex="1"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220913114121150.png" alt="image-20220913114121150" loading="lazy"></figure>
+<p>应该是80端口被占用了。</p>
+<h2 id="1-cmd窗口输入http命令netsh-http-show-servicestate查看发现有个共同进程id5888">1、cmd窗口输入HTTP命令netsh http show servicestate查看，发现有个共同进程ID：5888</h2>
+<p>输入命令: <code>netsh http show servicestate</code></p>
+<figure data-type="image" tabindex="2"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220913115216521.png" alt="image-20220913115216521" loading="lazy"></figure>
+<h2 id="2-打开任务管理器选择服务找到pid5888对应的服务把它停止就可以了">2、打开任务管理器，选择服务，找到PID5888对应的服务把它停止就可以了。</h2>
+<figure data-type="image" tabindex="3"><img src="http://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20220913115323457.png" alt="image-20220913115323457" loading="lazy"></figure>
+<p>然后就可以运行了</p>
+]]></content>
+    </entry>
+</feed>
