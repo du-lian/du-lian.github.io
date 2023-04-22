@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://dulian.top</id>
+    <title>都恋个人博客</title>
+    <updated>2023-04-22T14:43:52.074Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://dulian.top"/>
+    <link rel="self" href="https://dulian.top/atom.xml"/>
+    <subtitle>努力学习，天天向上</subtitle>
+    <logo>https://dulian.top/images/avatar.png</logo>
+    <icon>https://dulian.top/favicon.ico</icon>
+    <rights>All rights reserved 2023, 都恋个人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[利用反射获取类的get set方法]]></title>
+        <id>https://dulian.top/post/li-yong-fan-she-huo-qu-lei-de-get-set-fang-fa/</id>
+        <link href="https://dulian.top/post/li-yong-fan-she-huo-qu-lei-de-get-set-fang-fa/">
+        </link>
+        <updated>2023-04-13T14:14:51.000Z</updated>
+        <content type="html"><![CDATA[<p>因为业务的一些需求，要写一个反射的工具类，用来获取类的set方法</p>
+<p>写了一个反射工具类。</p>
+<p>1.根据属性，获取get方法</p>
+<figure data-type="image" tabindex="1"><img src="C:%5CUsers%5C24045%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20230413215851734.png" alt="image-20230413215851734" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java">   public static Object getGetMethod(Object ob , String name)throws Exception{
+        Method[] m = ob.getClass().getMethods();
+        for(int i = 0;i &lt; m.length;i++){
+        //这里首字母要大写，因为getXXX
+            if((&quot;get&quot;+name).toLowerCase().equals(m[i].getName().toLowerCase())){
+                return m[i].invoke(ob);
+            }
+        }
+        return null;
+    }
+</code></pre>
+<p>2.根据属性，拿到set方法，并把值set到对象中</p>
+<figure data-type="image" tabindex="2"><img src="C:%5CUsers%5C24045%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20230413215943680.png" alt="image-20230413215943680" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java">  //这个方法真的不错，可以不同的类，后面如果有些不同类，但做相同的属性操作， 可以使用的到
+  public static void setValue(Object obj,Class&lt;?&gt; clazz,String filedName,Class&lt;?&gt; typeClass,Object value){
+        //filedName = removeLine(filedName);
+        String methodName = &quot;set&quot; + filedName;
+        try{
+            Method method =  clazz.getDeclaredMethod(methodName, new Class[]{typeClass});
+            method.invoke(obj, new Object[]{getClassTypeValue(typeClass, value)});
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+    }
+</code></pre>
+<p>3.通过class类型获取获取对应类型的值</p>
+<figure data-type="image" tabindex="3"><img src="C:%5CUsers%5C24045%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20230413220122198.png" alt="image-20230413220122198" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java">//获取对应属性的类型
+private static Object getClassTypeValue(Class&lt;?&gt; typeClass, Object value){
+        if(typeClass == int.class  || value instanceof Integer){
+            if(null == value){
+                return 0;
+            }
+            return value;
+        }else if(typeClass == short.class){
+            if(null == value){
+                return 0;
+            }
+            return value;
+        }else if(typeClass == byte.class){
+            if(null == value){
+                return 0;
+            }
+            return value;
+        }else if(typeClass == double.class){
+            if(null == value){
+                return 0;
+            }
+            return value;
+        }else if(typeClass == long.class){
+            if(null == value){
+                return 0;
+            }
+            return value;
+        }else if(typeClass == String.class){
+            if(null == value){
+                return &quot;&quot;;
+            }
+            return value;
+        }else if(typeClass == boolean.class){
+            if(null == value){
+                return true;
+            }
+            return value;
+        }else if(typeClass == BigDecimal.class){
+            if(null == value){
+                return new BigDecimal(0);
+            }
+            return new BigDecimal(value+&quot;&quot;);
+        }else {
+            return typeClass.cast(value);
+        }
+    }
+</code></pre>
+<p>4.处理字符串 驼峰，去除下横线</p>
+<figure data-type="image" tabindex="4"><img src="C:%5CUsers%5C24045%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20230413220209358.png" alt="image-20230413220209358" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java">//处理字符串 驼峰，去除下横线 
+public static  String removeLine(String str){
+        if(null != str &amp;&amp; str.contains(&quot;_&quot;)){
+            int i = str.indexOf(&quot;_&quot;);
+            char ch = str.charAt(i+1);
+            char newCh = (ch+&quot;&quot;).substring(0, 1).toUpperCase().toCharArray()[0];
+            String newStr = str.replace(str.charAt(i+1), newCh);
+            String newStr2 = newStr.replace(&quot;_&quot;, &quot;&quot;);
+            return newStr2;
+        }
+     //有点瑕疵，毕竟有可能要首字母大写的
+        return str;
+    }
+</code></pre>
+<p>5.首字母大写的高效率写法</p>
+<figure data-type="image" tabindex="5"><img src="C:%5CUsers%5C24045%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20230413220332001.png" alt="image-20230413220332001" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java"> /**
+     * @description: 首字母转化为大写
+     * @param: field
+     * @return: java.lang.String
+     * @date: 2023/4/13 15:00
+     */
+    public static String stringToUpperCase(String field) throws Exception{
+        char[] chars = field.toCharArray();
+        chars[0]=toUpperCase(chars[0]);
+        return String.valueOf(chars);
+    }
+    /**
+     * @description: 首字母转化为大写
+     * @param: aChar
+     * @return: char
+     * @date: 2023/4/13 14:59
+     */
+    private static char toUpperCase(char aChar) {
+        if(97&lt;=aChar &amp;&amp; aChar &lt;=122){
+            aChar ^=32;
+        }
+        return aChar;
+    }
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[使用反射查找表的字段和表的注释]]></title>
+        <id>https://dulian.top/post/shi-yong-fan-she-cha-zhao-biao-de-zi-duan-he-biao-de-zhu-shi/</id>
+        <link href="https://dulian.top/post/shi-yong-fan-she-cha-zhao-biao-de-zi-duan-he-biao-de-zhu-shi/">
+        </link>
+        <updated>2023-04-13T14:13:53.000Z</updated>
+        <content type="html"><![CDATA[<p>遇到的一个场景是， 我知道中文名字，但mysql表只有注释有中文名字， 其他都是英文，我要一一对应，后面才好赋值。</p>
+<p>写了个MySQLUtlis的工具类，方便以后用。</p>
+<ol>
+<li>连接配置</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413214749689.png" alt="image-20230413214749689" loading="lazy"></figure>
+<p>代码附上</p>
+<pre><code class="language-java">   public static Connection getMySQLConnection() throws Exception {
+        Class.forName(&quot;com.p6spy.engine.spy.P6SpyDriver&quot;);
+        Connection conn = DriverManager.getConnection(&quot;jdbc:p6spy:mysql://127.0.0.1:3306/数据库?serverTimezone=UTC&amp;useSSL=false&amp;characterEncoding=utf-8&quot;, 用户名, 密码);
+        return conn;
+    }
+</code></pre>
+<ol start="2">
+<li>获取当前数据库下的所有表名称</li>
+</ol>
+<figure data-type="image" tabindex="2"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413214856230.png" alt="image-20230413214856230" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java">   public static List getAllTableName() throws Exception {
+        List tables = new ArrayList();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(&quot;SHOW TABLES &quot;);
+        while (rs.next()) {
+            String tableName = rs.getString(1);
+            tables.add(tableName);
+        }
+        rs.close();
+        stmt.close();
+        conn.close();
+        return tables;
+    }
+</code></pre>
+<p>数据库</p>
+<pre><code class="language-mysql">select table_name 
+from information_schema.tables 
+where table_schema='csdb' and table_type='base table';
+</code></pre>
+<ol start="3">
+<li>获得某表的建表语句</li>
+</ol>
+<figure data-type="image" tabindex="3"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413215048861.png" alt="image-20230413215048861" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java"> public static Map getCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;SHOW CREATE TABLE &quot; + table);
+            if (rs != null &amp;&amp; rs.next()) {
+                String createDDL = rs.getString(2);
+                String comment = parse(createDDL);
+                map.put(table, comment);
+            }
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+</code></pre>
+<ol start="4">
+<li>获得某表中所有字段的注释</li>
+</ol>
+<figure data-type="image" tabindex="4"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413215127324.png" alt="image-20230413215127324" loading="lazy"></figure>
+<p>代码，我是业务需要要返回map</p>
+<pre><code class="language-java">public static Map&lt;String,String&gt; getColumnCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;show full columns from &quot; + table);
+            System.out.println(&quot;【&quot;+table+&quot;】&quot;);
+            while (rs.next()) {
+                //System.out.println(rs.getString(&quot;Field&quot;) + &quot;\t:\t&quot;+  rs.getString(&quot;Comment&quot;) );
+                if(rs.getString(&quot;Comment&quot;).contains(&quot;评定&quot;)||rs.getString(&quot;Comment&quot;).contains(&quot;扣分&quot;)){
+                    String field = rs.getString(&quot;Field&quot;);
+                    String s = BridgeUtils.convertToCamelCase(field);
+                    map.put(rs.getString(&quot;Comment&quot;),s);
+                }
+            }
+
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+</code></pre>
+<p>5.返回注释信息</p>
+<figure data-type="image" tabindex="5"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413215205807.png" alt="image-20230413215205807" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java"> public static String parse(String all) {
+        String comment = null;
+        int index = all.indexOf(&quot;COMMENT='&quot;);
+        if (index &lt; 0) {
+            return &quot;&quot;;
+        }
+        comment = all.substring(index + 9);
+        comment = comment.substring(0, comment.length() - 1);
+        return comment;
+    }
+</code></pre>
+<p>完整的MySQLUtils工具类直接放上了，应该可以直接使用</p>
+<pre><code class="language-java">package com.dyage.dyageadmin.utils;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author czqCode
+ * @version 1.0
+ * @description:获取数据库的工具类
+ * @date 2023/4/13 13:35
+ */
+public class MySqlUtils {
+    /**
+     * @description: 返回注释信息
+     * @param: all
+     * @return: java.lang.String
+     * @author: czqCode
+     * @date: 2023/4/13 13:37
+     */
+
+    public static String parse(String all) {
+        String comment = null;
+        int index = all.indexOf(&quot;COMMENT='&quot;);
+        if (index &lt; 0) {
+            return &quot;&quot;;
+        }
+        comment = all.substring(index + 9);
+        comment = comment.substring(0, comment.length() - 1);
+        return comment;
+    }
+
+
+
+    /**
+     * @description: 获取当前数据库下的所有表名称
+     * @param: 
+     * @return: java.util.List
+     * @author: czqCode
+     * @date: 2023/4/13 13:38
+     */
+    public static List getAllTableName() throws Exception {
+        List tables = new ArrayList();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(&quot;SHOW TABLES &quot;);
+        while (rs.next()) {
+            String tableName = rs.getString(1);
+            tables.add(tableName);
+        }
+        rs.close();
+        stmt.close();
+        conn.close();
+        return tables;
+    }
+
+
+    /**
+     * @description: 获得某表的建表语句
+     * @param: tableName
+     * @return: java.util.Map
+     * @author: czqCode
+     * @date: 2023/4/13 13:38
+     */
+    public static Map getCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;SHOW CREATE TABLE &quot; + table);
+            if (rs != null &amp;&amp; rs.next()) {
+                String createDDL = rs.getString(2);
+                String comment = parse(createDDL);
+                map.put(table, comment);
+            }
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+
+
+    /**
+     * @description: 连接配置
+     * @param: 
+     * @return: java.sql.Connection
+     * @author: czqCode
+     * @date: 2023/4/13 13:38
+     */
+    public static Connection getMySQLConnection() throws Exception {
+        Class.forName(&quot;com.p6spy.engine.spy.P6SpyDriver&quot;);
+        Connection conn = DriverManager.getConnection(&quot;jdbc:p6spy:mysql://127.0.0.1:3306/数据库?serverTimezone=UTC&amp;useSSL=false&amp;characterEncoding=utf-8&quot;, 用户名, 密码);
+        return conn;
+    }
+
+
+    /**
+     * @description: 获得某表中所有字段的注释
+     * @param: tableName
+     * @return: java.util.Map&lt;java.lang.String,java.lang.String&gt;
+     * @author: czqCode
+     * @date: 2023/4/13 13:46
+     */
+    public static Map&lt;String,String&gt; getColumnCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;show full columns from &quot; + table);
+            System.out.println(&quot;【&quot;+table+&quot;】&quot;);
+            while (rs.next()) {
+                //System.out.println(rs.getString(&quot;Field&quot;) + &quot;\t:\t&quot;+  rs.getString(&quot;Comment&quot;) );
+                //这里是我自己的一些业务需要，返回数据库的字段名和数据库的注释名
+                if(rs.getString(&quot;Comment&quot;).contains(&quot;评定&quot;)||rs.getString(&quot;Comment&quot;).contains(&quot;扣分&quot;)){
+                    String field = rs.getString(&quot;Field&quot;);
+                    String s = BridgeUtils.convertToCamelCase(field);
+                    map.put(rs.getString(&quot;Comment&quot;),s);
+                }
+            }
+
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+}
+
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[使用redis pipeline存 100多个数据，也可以使用for 存map数据]]></title>
+        <id>https://dulian.top/post/shi-yong-redis-pipeline-cun-100-duo-ge-shu-ju-ye-ke-yi-shi-yong-for-cun-map-shu-ju/</id>
+        <link href="https://dulian.top/post/shi-yong-redis-pipeline-cun-100-duo-ge-shu-ju-ye-ke-yi-shi-yong-for-cun-map-shu-ju/">
+        </link>
+        <updated>2023-04-03T13:42:44.000Z</updated>
+        <content type="html"><![CDATA[<h1 id=""></h1>
+<pre><code class="language-java">        //把数据存入redis中，舒服。  
+
+        ValueOperations&lt;String, Object&gt; mapOps = redisTemplate.opsForValue();
+        for (Map.Entry&lt;Integer, Map&lt;String, String&gt;&gt; entry : collect.entrySet()) {
+            Integer key = entry.getKey();
+            Map&lt;String, String&gt; value = entry.getValue();
+            mapOps.set(BridgeConstant.BRIDER_DISEASE_ASSESS + key,value);
+        }
+</code></pre>
+<p>这样就可以根据int来找到 我的value值</p>
+<p>还可以使用pipeline</p>
+<pre><code class="language-java">        redisTemplate.executePipelined(new RedisCallback&lt;Object&gt;() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+
+                for (Map.Entry&lt;Integer, Map&lt;String, String&gt;&gt; entry : collect.entrySet()) {
+                    Integer i = entry.getKey();
+                    String key =BridgeConstant.BRIDER_DISEASE_ASSESS+i;
+                    Map&lt;byte[], byte[]&gt; hashMap = new HashMap&lt;&gt;();
+                    for (Map.Entry&lt;String, String&gt; stringEntry : entry.getValue().entrySet()) {
+                           hashMap.put(stringEntry.getKey().getBytes(),stringEntry.getValue().getBytes());
+                    }
+                   connection.hMSet(key.getBytes(),hashMap);
+
+                   connection.expire(key.getBytes(), 3000);
+                }
+
+                return null;
+            }
+        });
+</code></pre>
+<p>会有序号，而且还是一行一行，自己不太喜欢这种格式。还是用回map</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[mysql 进行一个值查询三个字段的问题]]></title>
+        <id>https://dulian.top/post/mysql-jin-xing-yi-ge-zhi-cha-xun-san-ge-zi-duan-de-wen-ti/</id>
+        <link href="https://dulian.top/post/mysql-jin-xing-yi-ge-zhi-cha-xun-san-ge-zi-duan-de-wen-ti/">
+        </link>
+        <updated>2023-04-02T15:04:09.000Z</updated>
+        <content type="html"><![CDATA[<p>遇到一个业务，一个搜索框里面可以查询三个字段里面的内容。</p>
+<p>比如 铁，这一个字段， 查名字， 查城市， 查编号</p>
+<figure data-type="image" tabindex="1"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230402230335056.png" alt="image-20230402230335056" loading="lazy"></figure>
+<p>只需要这样就可以了</p>
+<pre><code class="language-mysql">select *  from user_wallet_record
+where CONCAT(id,user_id,trade_name) like CONCAT('%','铁','%')
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[mysql 进行多列判断是否为空，然后进行统计]]></title>
+        <id>https://dulian.top/post/mysql-jin-xing-duo-lie-pan-duan-shi-fou-wei-kong-ran-hou-jin-xing-tong-ji/</id>
+        <link href="https://dulian.top/post/mysql-jin-xing-duo-lie-pan-duan-shi-fou-wei-kong-ran-hou-jin-xing-tong-ji/">
+        </link>
+        <updated>2023-04-02T14:58:35.000Z</updated>
+        <content type="html"><![CDATA[<p>遇到一个业务需要先统计出来这五个列名是否为空，后面需要根据这个数值对应不同的扣分数值。</p>
+<figure data-type="image" tabindex="1"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230402223441966.png" alt="image-20230402223441966" loading="lazy"></figure>
+<p>就比如这五列</p>
+<figure data-type="image" tabindex="2"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230402225745229.png" alt="image-20230402225745229" loading="lazy"></figure>
+<p>这样就可以统计出五列是否为空</p>
+<pre><code class="language-mysql">select IF(scale_1,1,0)+IF(scale_2,1,0)+IF(scale_3,1,0)+IF(scale_4,1,0)+IF(scale_5,1,0) as count from user_wallet
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[混淆了@PathVariable和@PathParam的用法]]></title>
+        <id>https://dulian.top/post/hun-yao-liao-pathvariable-he-pathparam-de-yong-fa/</id>
+        <link href="https://dulian.top/post/hun-yao-liao-pathvariable-he-pathparam-de-yong-fa/">
+        </link>
+        <updated>2023-04-01T13:23:56.000Z</updated>
+        <content type="html"><![CDATA[<p>有三个月没怎么敲过代码了，然后今天接手一个项目。在写语句的时候，遇到了传参的问题。<br>
+今天开发遇见一个很奇怪的事情</p>
+<p>先说结论<br>
+<strong>/test/1 这是是使用@PathVariable</strong><br>
+<strong>/test/id=1 这种就是使用@PathParam</strong></p>
+<p>我在controller层使用了@restController,</p>
+<pre><code class="language-java">@GetMapping(&quot;/hello2/{id}&quot;)
+    public String test2(@PathVariable String id){
+        return id;
+    }
+</code></pre>
+<p>使用postman居然是错误的，</p>
+<p>然后我试了一下不加参数，我看看是不是我的参数有问题</p>
+<pre><code class="language-java">@GetMapping(&quot;/hello&quot;)
+    public String test(){
+        return &quot;hello&quot;;
+    }
+</code></pre>
+<p>然后postman就通了</p>
+<p>好奇怪，我现在都没弄明白，为什么加个参数就导致请求路径出现了问题，我后面使用了@PathParam</p>
+<pre><code class="language-java">@GetMapping(&quot;/hello3&quot;)
+    public String test3(@PathParam(&quot;id&quot;) String id){
+        return id;
+    }
+</code></pre>
+<p>发现了问题。哈哈</p>
+<p>@PathVarable() 其实是对应路径的，</p>
+<p>比如/hello/user 这种使用@PathVarable是可以的</p>
+<p>就是<br>
+/test/1 这是是使用@PathVariable<br>
+/test/id=1 这种就是使用@PathParam</p>
+]]></content>
+    </entry>
+</feed>

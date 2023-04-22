@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="black" name="apple-mobile-web-app-status-bar-style" />
+<meta name="referrer" content="never">
+<meta name="keywords" content="">
+<meta name="description" content="欢迎访问[都恋个人博客]的个人博客">
+<meta name="author" content="kveln">
+<title>使用反射查找表的字段和表的注释 | 都恋个人博客</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+<link href="https://cdn.bootcss.com/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+<link
+  href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+  rel='stylesheet' type='text/css'>
+<link rel="alternate" type="application/rss+xml" title="使用反射查找表的字段和表的注释 | 都恋个人博客 » Feed"
+  href="https://dulian.top/atom.xml">
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.15.10/build/styles/androidstudio.min.css">
+<link href="https://dulian.top/styles/main.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/css/live2d.css">
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+  <meta property="og:description" content="使用反射查找表的字段和表的注释" />
+  <meta property="og:url" content="https://dulian.top/post/shi-yong-fan-she-cha-zhao-biao-de-zi-duan-he-biao-de-zhu-shi/" />
+  <meta property="og:locale" content="zh-CN" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="都恋个人博客" />
+  <!-- <script src="../assets/styles/scripts/tocScript.js"></script> -->
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="https://dulian.top">都恋个人博客</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+      data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+      aria-label="Toggle navigation">
+      Menu
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/">首页</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/archives">归档</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/tags">标签</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/about">关于</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          <div class="gridea-search-container">
+            <form id="gridea-search-form" style="position: relative" data-update="1682174629823"
+              action="/search/index.html">
+              <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+              <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+  <!-- Page Header -->
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="https://dulian.top">都恋个人博客</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+      data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+      aria-label="Toggle navigation">
+      Menu
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/">首页</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/archives">归档</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/tags">标签</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          
+          <a class="nav-link" href="/about">关于</a>
+          
+        </li>
+        
+        <li class="nav-item">
+          <div class="gridea-search-container">
+            <form id="gridea-search-form" style="position: relative" data-update="1682174629823"
+              action="/search/index.html">
+              <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+              <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<header class="masthead" style="background-image: url('https://dulian.top/media/images/home-bg.jpg')">
+  <div class="overlay"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        
+          <!-- 没Title为其他页面Header -->
+          
+            <!-- 没Title并且有headerType为Post：文章Header -->
+            <div class="post-heading">
+              <span class="tags">
+                
+              </span>
+              <h1>使用反射查找表的字段和表的注释</h1>
+              <span class="meta">
+                Posted on
+                2023-04-13，6 min read
+              </span>
+            </div>
+          
+        
+      </div>
+    </div>
+  </div>
+</header>
+  <!-- Post Content -->
+  <article id="post-content-article">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto post-content-container">
+          
+          <img class="post-feature-header-image" src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413214749689.png" alt="封面图">
+          </img>
+          
+          <p>遇到的一个场景是， 我知道中文名字，但mysql表只有注释有中文名字， 其他都是英文，我要一一对应，后面才好赋值。</p>
+<p>写了个MySQLUtlis的工具类，方便以后用。</p>
+<ol>
+<li>连接配置</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413214749689.png" alt="image-20230413214749689" loading="lazy"></figure>
+<p>代码附上</p>
+<pre><code class="language-java">   public static Connection getMySQLConnection() throws Exception {
+        Class.forName(&quot;com.p6spy.engine.spy.P6SpyDriver&quot;);
+        Connection conn = DriverManager.getConnection(&quot;jdbc:p6spy:mysql://127.0.0.1:3306/数据库?serverTimezone=UTC&amp;useSSL=false&amp;characterEncoding=utf-8&quot;, 用户名, 密码);
+        return conn;
+    }
+</code></pre>
+<ol start="2">
+<li>获取当前数据库下的所有表名称</li>
+</ol>
+<figure data-type="image" tabindex="2"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413214856230.png" alt="image-20230413214856230" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java">   public static List getAllTableName() throws Exception {
+        List tables = new ArrayList();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(&quot;SHOW TABLES &quot;);
+        while (rs.next()) {
+            String tableName = rs.getString(1);
+            tables.add(tableName);
+        }
+        rs.close();
+        stmt.close();
+        conn.close();
+        return tables;
+    }
+</code></pre>
+<p>数据库</p>
+<pre><code class="language-mysql">select table_name 
+from information_schema.tables 
+where table_schema='csdb' and table_type='base table';
+</code></pre>
+<ol start="3">
+<li>获得某表的建表语句</li>
+</ol>
+<figure data-type="image" tabindex="3"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413215048861.png" alt="image-20230413215048861" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java"> public static Map getCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;SHOW CREATE TABLE &quot; + table);
+            if (rs != null &amp;&amp; rs.next()) {
+                String createDDL = rs.getString(2);
+                String comment = parse(createDDL);
+                map.put(table, comment);
+            }
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+</code></pre>
+<ol start="4">
+<li>获得某表中所有字段的注释</li>
+</ol>
+<figure data-type="image" tabindex="4"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413215127324.png" alt="image-20230413215127324" loading="lazy"></figure>
+<p>代码，我是业务需要要返回map</p>
+<pre><code class="language-java">public static Map&lt;String,String&gt; getColumnCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;show full columns from &quot; + table);
+            System.out.println(&quot;【&quot;+table+&quot;】&quot;);
+            while (rs.next()) {
+                //System.out.println(rs.getString(&quot;Field&quot;) + &quot;\t:\t&quot;+  rs.getString(&quot;Comment&quot;) );
+                if(rs.getString(&quot;Comment&quot;).contains(&quot;评定&quot;)||rs.getString(&quot;Comment&quot;).contains(&quot;扣分&quot;)){
+                    String field = rs.getString(&quot;Field&quot;);
+                    String s = BridgeUtils.convertToCamelCase(field);
+                    map.put(rs.getString(&quot;Comment&quot;),s);
+                }
+            }
+
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+</code></pre>
+<p>5.返回注释信息</p>
+<figure data-type="image" tabindex="5"><img src="https://dulianblog.oss-cn-guangzhou.aliyuncs.com/Images/image-20230413215205807.png" alt="image-20230413215205807" loading="lazy"></figure>
+<p>代码</p>
+<pre><code class="language-java"> public static String parse(String all) {
+        String comment = null;
+        int index = all.indexOf(&quot;COMMENT='&quot;);
+        if (index &lt; 0) {
+            return &quot;&quot;;
+        }
+        comment = all.substring(index + 9);
+        comment = comment.substring(0, comment.length() - 1);
+        return comment;
+    }
+</code></pre>
+<p>完整的MySQLUtils工具类直接放上了，应该可以直接使用</p>
+<pre><code class="language-java">package com.dyage.dyageadmin.utils;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author czqCode
+ * @version 1.0
+ * @description:获取数据库的工具类
+ * @date 2023/4/13 13:35
+ */
+public class MySqlUtils {
+    /**
+     * @description: 返回注释信息
+     * @param: all
+     * @return: java.lang.String
+     * @author: czqCode
+     * @date: 2023/4/13 13:37
+     */
+
+    public static String parse(String all) {
+        String comment = null;
+        int index = all.indexOf(&quot;COMMENT='&quot;);
+        if (index &lt; 0) {
+            return &quot;&quot;;
+        }
+        comment = all.substring(index + 9);
+        comment = comment.substring(0, comment.length() - 1);
+        return comment;
+    }
+
+
+
+    /**
+     * @description: 获取当前数据库下的所有表名称
+     * @param: 
+     * @return: java.util.List
+     * @author: czqCode
+     * @date: 2023/4/13 13:38
+     */
+    public static List getAllTableName() throws Exception {
+        List tables = new ArrayList();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(&quot;SHOW TABLES &quot;);
+        while (rs.next()) {
+            String tableName = rs.getString(1);
+            tables.add(tableName);
+        }
+        rs.close();
+        stmt.close();
+        conn.close();
+        return tables;
+    }
+
+
+    /**
+     * @description: 获得某表的建表语句
+     * @param: tableName
+     * @return: java.util.Map
+     * @author: czqCode
+     * @date: 2023/4/13 13:38
+     */
+    public static Map getCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;SHOW CREATE TABLE &quot; + table);
+            if (rs != null &amp;&amp; rs.next()) {
+                String createDDL = rs.getString(2);
+                String comment = parse(createDDL);
+                map.put(table, comment);
+            }
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+
+
+    /**
+     * @description: 连接配置
+     * @param: 
+     * @return: java.sql.Connection
+     * @author: czqCode
+     * @date: 2023/4/13 13:38
+     */
+    public static Connection getMySQLConnection() throws Exception {
+        Class.forName(&quot;com.p6spy.engine.spy.P6SpyDriver&quot;);
+        Connection conn = DriverManager.getConnection(&quot;jdbc:p6spy:mysql://127.0.0.1:3306/数据库?serverTimezone=UTC&amp;useSSL=false&amp;characterEncoding=utf-8&quot;, 用户名, 密码);
+        return conn;
+    }
+
+
+    /**
+     * @description: 获得某表中所有字段的注释
+     * @param: tableName
+     * @return: java.util.Map&lt;java.lang.String,java.lang.String&gt;
+     * @author: czqCode
+     * @date: 2023/4/13 13:46
+     */
+    public static Map&lt;String,String&gt; getColumnCommentByTableName(List tableName) throws Exception {
+        Map map = new HashMap();
+        Connection conn = getMySQLConnection();
+        Statement stmt = conn.createStatement();
+        for (int i = 0; i &lt; tableName.size(); i++) {
+            String table = (String) tableName.get(i);
+            ResultSet rs = stmt.executeQuery(&quot;show full columns from &quot; + table);
+            System.out.println(&quot;【&quot;+table+&quot;】&quot;);
+            while (rs.next()) {
+                //System.out.println(rs.getString(&quot;Field&quot;) + &quot;\t:\t&quot;+  rs.getString(&quot;Comment&quot;) );
+                //这里是我自己的一些业务需要，返回数据库的字段名和数据库的注释名
+                if(rs.getString(&quot;Comment&quot;).contains(&quot;评定&quot;)||rs.getString(&quot;Comment&quot;).contains(&quot;扣分&quot;)){
+                    String field = rs.getString(&quot;Field&quot;);
+                    String s = BridgeUtils.convertToCamelCase(field);
+                    map.put(rs.getString(&quot;Comment&quot;),s);
+                }
+            }
+
+            rs.close();
+        }
+        stmt.close();
+        conn.close();
+        return map;
+    }
+}
+
+</code></pre>
+
+          <div class="toc-container"></div>
+          
+          <hr />
+          <p class="next-post">下一篇：
+            <a href="https://dulian.top/post/shi-yong-redis-pipeline-cun-100-duo-ge-shu-ju-ye-ke-yi-shi-yong-for-cun-map-shu-ju/">
+              <span class="post-title">
+                使用redis pipeline存 100多个数据，也可以使用for 存map数据&rarr;
+              </span>
+            </a>
+          </p>
+          
+          <div class="comment" style="text-align: center;">
+            
+
+            
+            
+          </div>
+        </div>
+      </div>
+  </article>
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <ul class="list-inline text-center">
+            
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+              <!-- <li class="list-inline-item">
+              <a href="https://dulian.top/atom.xml" target="_blank">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fas fa-rss fa-stack-1x fa-inverse"></i>
+                </span>
+              </a>
+              </li> -->
+          </ul>
+          <p class="copyright text-muted">Copyright &copy;<span>都恋个人博客</span><br><a href="https://github.com/getgridea/gridea" class="Themeinfo">Powered by Gridea</a></p>
+        </div>
+      </div>
+    </div>
+   </footer>
+  <!-- Bootstrap core JavaScript -->
+  <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+  <!-- <script src="https://dulian.top/media/scripts/bootstrap.bundle.min.js"></script> -->
+  <!-- Bootstrap core JavaScript -->
+  <script src="https://cdn.jsdelivr.net/gh/Alanrk/clean-cdn@1.0/scripts/clean-blog.min.js"></script>
+  <!-- <script src="https://dulian.top/media/scripts/clean-blog.min.js"></script> -->
+  <script src="//instant.page/3.0.0" type="module" defer integrity="sha384-OeDn4XE77tdHo8pGtE1apMPmAipjoxUQ++eeJa6EtJCfHlvijigWiJpD7VDPWXV1"></script>
+  <style type="text/css">a.back_to_top{text-decoration:none;position:fixed;bottom:40px;right:30px;background:#f0f0f0;height:40px;width:40px;border-radius:50%;line-height:36px;font-size:18px;text-align:center;transition-duration:.5s;transition-propety:background-color;display:none}a.back_to_top span{color:#888}a.back_to_top:hover{cursor:pointer;background:#dfdfdf}a.back_to_top:hover span{color:#555}@media print,screen and(max-width:580px){.back_to_top{display:none!important}}</style>
+<a id="back_to_top" href="#" class="back_to_top">
+  <span>▲</span></a>
+<script>$(document).ready((function(_this) {
+    return function() {
+      var bt;
+      bt = $('#back_to_top');
+      if ($(document).width() > 480) {
+        $(window).scroll(function() {
+          var st;
+          st = $(window).scrollTop();
+          if (st > 30) {
+            return bt.css('display', 'block')
+          } else {
+            return bt.css('display', 'none')
+          }
+        });
+        return bt.click(function() {
+          $('body,html').animate({
+            scrollTop: 0
+          },
+          800);
+          return false
+        })
+      }
+    }
+  })(this));</script>
+  
+  <script src="https://dulian.top/media/scripts/tocScript.js"></script>
+</body>
+
+</html>
